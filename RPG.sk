@@ -1,0 +1,139 @@
+command /rpg <text> <text>:
+	permission: skript.admin
+	trigger:
+		if "%arg 1%" is "Entity":
+			if "%arg 2%" is "Undead Hero":
+				spawn skeleton 5 in front of player's head
+				set name of spawned skeleton to "<red>Undead Hero<reset>"
+				equip spawned skeleton with diamond leggings
+				equip spawned skeleton with diamond chestplate
+				equip spawned skeleton with diamond helmet
+				equip spawned skeleton with diamond boots
+				set spawned skeleton's tool to a diamond sword named "<gold>Excalibur<reset>"
+				enchant spawned skeleton's tool with sharpness 10
+			else if "%arg 2%" is "Necromancer":
+				spawn witch 5 in front of player's head
+				set name of spawned witch to "<red>Necromancer<reset>"
+				loop 10 times:
+					spawn skeleton 5 in front of player's head
+					set name of spawned skeleton to "<white>Necromancer's Thrall<reset>"
+		else if "%arg 1%" is "Item":
+			if "%arg 2%" is "Excalibur":
+				give player {RPG Excalibur}
+			else if "%arg 2%" is "Ouroboros":
+				give player {RPG Ouroboros}
+			else if "%arg 2%" is "Mjolnir":
+				give player {RPG Mjolnir}
+			else if "%arg 2%" is "Amulet Of Life":
+				give player {RPG AmuletOfLife}
+			else if "%arg 2%" is "Notch's Hand":
+				give player {RPG NotchHand}
+			else:
+				send "<light red>For available Types, use ""/rpg Types [Entity | Item]""<reset>" to player
+		else if "%arg 1%" is "Types":
+			if "%arg 2%" is "Entity": 
+				send "<light green>1. Undead Hero<reset>" to player
+				send "<light green>2. Necromancer<reset>" to player
+			else if "%arg 2%" is "Item":
+				send "<light green>1. Excalibur<reset>" to player
+				send "<light green>2. Ouroboros<reset>" to player
+				send "<light green>3. Mjolnir<reset>" to player
+				send "<light green>4. Amulet of Life<reset>" to player
+				send "<light green>5. Notch's Hand<reset>" to player
+			else:
+				send "<light red>Usage: /rpg Types [Entity | Item]<reset>" to player
+		else:
+			send "<light red>Usage: /rpg [Entity | Item] [Type]<reset>" to player
+			send "<light red>For available Types, use ""/rpg Types [Entity | Item]""<reset>" to player
+			
+command /durability:
+	aliases: /dura
+	permission: skript.mod
+	trigger:
+		send "%durability of player's tool% left" to player
+		
+on rightclick:
+	player's tool is a bow:
+		"%name of player's tool%" is "<black>Ouroboros<reset>"
+		player's tool is enchanted with Infinity 10
+		shoot an arrow
+		set player's tool's durability to 0
+		wait 10 ticks
+		delete all arrows within 20 blocks of event-player
+	player's tool is a stone axe:
+		"%name of player's tool%" is "<yellow>Mjolnir<reset>"
+		strike lightning effect at target
+		target is an entity
+		damage target by target's health / 2
+		increase player's tool's durability by 20
+		player's tool's durability is more than 100
+		set player's tool to air
+	
+	
+	
+on damage of entity:
+	attacker's tool is a bow:
+		"%name of attacker's tool%" is "<black>Ouroboros<reset>"
+		attacker's tool is enchanted with Infinity 10
+		set the damage to .75
+	victim's name is "<red>Undead Hero<reset>":
+		set damage to damage / 2
+	victim's name is "<red>Necromancer<reset>":
+		set damage to damage / 2
+	
+on death of skeleton:
+	skeleton's name is "<red>Undead Hero<reset>"
+	clear drops
+	add {RPG Excalibur} to attacker's inventory
+	broadcast "<green>%attacker's name%<light green> has defeated an <red>Undead Hero<reset>"
+	broadcast "<light green>and has recovered the legendary weapon <gold>Excalibur<light green>!<reset>"
+	
+on death of witch:
+	witch's name is "<red>Necromancer<reset>"
+	clear drops
+	add {RPG AmuletOfLife} to attacker's inventory
+	broadcast "<green>%attacker's name%<light green> has defeated a <red>Necromancer<reset>"
+	broadcast "<light green>and has recovered the legendary item <cyan>Amulet of Life<light green>!<reset>"
+	
+on damage of player:
+	health of victim - damage is less than or equal to 0
+	loop items in victim's inventory:
+		loop-item is {RPG AmuletOfLife}
+		cancel event 
+		heal victim
+		send "<cyan>You have been brought back from death by the mysterious amulet you hold.<reset>" to victim
+		send "<cyan>%victim's name% has been brought back from death by the mysterious amulet they were holding!<reset>" to attacker
+		remove loop-item from victim's inventory
+
+			
+on script load:
+	#Excalibur
+	set {RPG Excalibur} to a diamond sword named "<gold>Excalibur<reset>"
+	enchant {RPG Excalibur} with sharpness 10
+	set {RPG Excalibur}'s durability to 1532
+	set the 1st line of {RPG Excalibur}'s lore to "<gold>~Legendary~<reset>"
+	set the 2nd line of {RPG Excalibur}'s lore to "<light green>A broadsword held only by worthy knights.<reset>"
+	set the 3rd line of {RPG Excalibur}'s lore to "<light green>Incredibly powerful, but fragile.<reset>"
+	#Ouroboros
+	set {RPG Ouroboros} to a bow named "<black>Ouroboros<reset>"
+	enchant {RPG Ouroboros} with infinity 10
+	set the 1st line of {RPG Ouroboros}'s lore to "<gold>~Legendary~<reset>"
+	set the 2nd line of {RPG Ouroboros}'s lore to "<light green>An ancient bow that uses the wielders aura to attack.<reset>"
+	set the 3rd line of {RPG Ouroboros}'s lore to "<light green>Needs no arrows.<reset>"
+	#Mjolnir
+	set {RPG Mjolnir} to a stone axe named "<yellow>Mjolnir<reset>"
+	set the 1st line of {RPG Mjolnir}'s lore to "<gold>~Legendary~<reset>"
+	set the 2nd line of {RPG Mjolnir}'s lore to "<light green>The powerful axe of Thor.<reset>"
+	set the 3rd line of {RPG Mjolnir}'s lore to "<light green>Call forth lightning.<reset>"
+	#Amulet of Life
+	set {RPG AmuletOfLife} to a gold nugget named "<cyan>Amulet of Life<reset>"
+	set the 1st line of {RPG AmuletOfLife}'s lore to "<gold>~Legendary~<reset>"
+	set the 2nd line of {RPG AmuletOfLife}'s lore to "<light green>An amulet with an aura of undeath around it<reset>"
+	set the 3rd line of {RPG AmuletOfLife}'s lore to "<light green>Come back from the grave.<reset>"
+	#Notch's Hand
+	set {RPG NotchHand} to an iron pickaxe named "<yellow>Notch's Hand<reset>"
+	enchant {RPG NotchHand} with unbreaking 10
+	enchant {RPG NotchHand} with silk touch 1
+	set the 1st line of {RPG NotchHand}'s lore to "<gold>~Legendary~<reset>"
+	set the 2nd line of {RPG NotchHand}'s lore to "<light green>The pickaxe of Notch.<reset>"
+	set the 3rd line of {RPG NotchHand}'s lore to "<light green>Used to shape the world.<reset>"
