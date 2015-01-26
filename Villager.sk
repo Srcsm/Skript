@@ -1,3 +1,4 @@
+#This Skript file is used for the Citizens-esque mini-plugin
 on rightclick on villager:
 	villager's name is "Banker"
 	cancel event
