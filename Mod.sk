@@ -67,3 +67,9 @@ on pick up:
 	{Mod %player%.vanish} is set
 	"%{Mod %player%.vanish}%" is "On"
 	cancel event
+	
+on hunger level change:
+	player has permission "skript.mod":
+		set player's hunger level to 10 
+	player's name is "Etzelia":
+		set player's hunger level to 10 
