@@ -34,13 +34,3 @@ every 10 ticks:
 		loop-player has permission "skript.admin":
 			"%{Admin %loop-player%.flame}%" is "On":
 				show mob spawner flames at loop-player
-#---------------------------------------------------------------
-#---------------------------------------------------------------
-#---------------------------------------------------------------
-#--vv This command is redundant, you can simply /slap * 
-command /slapall:
-	permission: skript.admin
-	trigger:
-		loop all players:
-			"%name of player%" is not "%name of loop-player%"
-			make player execute command "/slap %loop-player%"
