@@ -41,9 +41,6 @@ on death of player:
 	attacker is a player
 	log "%name of attacker% killed %name of victim% at %location of attacker% (Victim's location: %location of victim%)" to "PvP.log"
 
-#We don't need invulnerable villagers. People can adequately protect them if need be.	
-#on damage of a villager:
-#	cancel event
 	
 on script load:
 	register new shaped recipe for name tag using iron ingot, paper, iron ingot, iron ingot, paper, iron ingot, air, tripwire hook, air
