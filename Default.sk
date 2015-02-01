@@ -45,9 +45,4 @@ on death of player:
 on script load:
 	register new shaped recipe for name tag using iron ingot, paper, iron ingot, iron ingot, paper, iron ingot, air, tripwire hook, air
 	
-command /support <text>:
-	trigger:
-		set {_placeholder} to text from "http://www.qridmc.com/email.html?player=%player%&message=%arg 1%"
-		log "%{_placeholder}%" to "emails.log"
-		send "<light green>An email has been sent to our support team. We will get back to you shortly, thanks!<reset>" to player
-	
+
