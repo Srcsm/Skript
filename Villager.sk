@@ -1,0 +1,25 @@
+#This Skript file is used for the Citizens-esque mini-plugin
+on rightclick on villager:
+	villager's name is "Banker"
+	cancel event
+	send "Welcome to the bank! What can I do for you?" to player
+	
+command /villager <text> [<text>]:
+	permission: skript.admin
+	trigger:
+		if "%arg 1%" is "Create":
+			spawn a villager above targeted block
+			if "%arg 2%" is not "<none>":
+				set name of spawned villager to "%arg 2%"
+		else if "%arg 1%" is "Remove":
+			if target is a villager:
+				kill target
+				send "<light green>You have removed a Villager.<reset>" to player 
+			else:
+				send "<light red>You are not targeting a Villager.<reset>" to player
+		else:
+			send "<light red>Incorrect usage.<reset>" to player
+			
+on rightclick on villager with name tag:
+	"%name of player's tool%" is "Banker"
+	cancel event

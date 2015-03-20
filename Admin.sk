@@ -1,0 +1,36 @@
+#All Skripts in this file are for Administrator use only
+
+command /skr <text>:
+	permission: skript.admin
+	usage: /skr [script]
+	description: Short-hand version of Skript reload
+	trigger:
+		make player execute command "/skript reload %arg 1%"
+	
+		
+command /skull <offline player>:
+	permission: skript.admin
+	trigger:
+		give argument's skull to the player
+#---------------------------------------------------------------
+#-FLAME EFFECT--------------------------------------------------
+#---------------------------------------------------------------
+command /flame <text>:
+	permission: skript.admin
+	usage: /flame [On|Off]
+	description: Unleash your true Admin power! Your aura burns around you.
+	trigger:
+		if "%arg 1%" is "On":
+			set {Admin %player%.flame} to "On"
+			send "Flames are now on, almighty Admin" to player
+		else if "%arg 1%" is "Off":
+			set {Admin %player%.flame} to "Off"
+			send "Ah yes, no need to scare them away." to player
+		else:
+			send "<light red>Accepted parameters are ""On"" or ""Off""<reset>"
+			
+every 10 ticks:
+	loop players:
+		loop-player has permission "skript.admin":
+			"%{Admin %loop-player%.flame}%" is "On":
+				show mob spawner flames at loop-player
