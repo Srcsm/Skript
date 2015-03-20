@@ -1,0 +1,206 @@
+# All Skripts in this file are for either Donor or Donor+
+# They are kept in the same file in case they need global changes
+options:
+	adminTag : "[Admin]" or "[Bank]"
+
+#-----------------------------------------------------------------------
+#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR#DONOR
+#-----------------------------------------------------------------------
+command /hat:
+	permission: skript.donor
+	description: Wear your held item as a hat!
+	trigger:
+		player's tool is not air:
+			player is not wearing a helmet:
+				set player's helmet to type of player's tool
+				remove 1 of player's tool from player
+			else:
+				send "<light red>Please remove your helmet first.<reset>" to player
+		else:
+			send "<light red>You must be holding an item to use it as a hat!<reset>" to player
+
+on rightclick on painting with feather:
+	player has permission "skript.donor"
+	if "%clicked entity's displayed art%" is "KEBAB":
+		set clicked entity's displayed art to AZTEC
+	else if "%clicked entity's displayed art%" is "AZTEC":
+		set clicked entity's displayed art to ALBAN
+	else if "%clicked entity's displayed art%" is "ALBAN":
+		set clicked entity's displayed art to AZTEC2
+	else if "%clicked entity's displayed art%" is "AZTEC2":
+		set clicked entity's displayed art to BOMB
+	else if "%clicked entity's displayed art%" is "BOMB":
+		set clicked entity's displayed art to WASTELAND
+	else if "%clicked entity's displayed art%" is "WASTELAND":
+		set clicked entity's displayed art to WANDERER
+	else if "%clicked entity's displayed art%" is "WANDERER":
+		set clicked entity's displayed art to GRAHAM
+	else if "%clicked entity's displayed art%" is "GRAHAM":
+		set clicked entity's displayed art to POOL
+	else if "%clicked entity's displayed art%" is "POOL":
+		set clicked entity's displayed art to COURBET
+	else if "%clicked entity's displayed art%" is "COURBET":
+		set clicked entity's displayed art to SUNSET
+	else if "%clicked entity's displayed art%" is "SUNSET":
+		set clicked entity's displayed art to SEA
+	else if "%clicked entity's displayed art%" is "SEA":
+		set clicked entity's displayed art to CREEBET
+	else if "%clicked entity's displayed art%" is "CREEBET":
+		set clicked entity's displayed art to MATCH
+	else if "%clicked entity's displayed art%" is "MATCH":
+		set clicked entity's displayed art to BUST
+	else if "%clicked entity's displayed art%" is "BUST":
+		set clicked entity's displayed art to STAGE
+	else if "%clicked entity's displayed art%" is "STAGE":
+		set clicked entity's displayed art to VOID
+	else if "%clicked entity's displayed art%" is "VOID":
+		set clicked entity's displayed art to SKULL_AND_ROSES
+	else if "%clicked entity's displayed art%" is "SKULL_AND_ROSES":
+		set clicked entity's displayed art to FIGHTERS
+	else if "%clicked entity's displayed art%" is "FIGHTERS":
+		set clicked entity's displayed art to DONKEYKONG
+	else if "%clicked entity's displayed art%" is "DONKEYKONG":
+		set clicked entity's displayed art to POINTER
+	else if "%clicked entity's displayed art%" is "POINTER":
+		set clicked entity's displayed art to PIGSCENE
+	else if "%clicked entity's displayed art%" is "PIGSCENE":
+		set clicked entity's displayed art to BURNINGSKULL
+	else if "%clicked entity's displayed art%" is "BURNINGSKULL":
+		set clicked entity's displayed art to KEBAB
+		
+on rightclick on painting with stick:
+	player has permission "skript.donor"
+	send "%clicked entity's displayed art%" to player
+			
+command /editsign <number> <text>:
+	permission: skript.donor
+	aliases: /es
+	usage: /editsign [Line Number] [Replacement text]
+	trigger:
+		targeted block is a sign:
+			arg-1 is 1 or 2 or 3 or 4:
+				arg-1 is 1:
+					"%arg-2%" is not {@adminTag}:
+						set line 1 of targeted block to "%arg-2%"
+					else:
+						send "<light red>Only Admins can use that tag<reset>" to player
+				arg-1 is 2:
+					set line 2 of targeted block to "%arg-2%"
+				arg-1 is 3:
+					set line 3 of targeted block to "%arg-2%"
+				arg-1 is 4:
+					set line 4 of targeted block to "%arg-2%"
+			else:
+				send "<light red>Signs only have 4 lines.<reset>" to player
+		else:
+			send "<light red>You must be targeting a sign to use the command.<reset>" to player
+	
+command /rainbowarmor:
+	aliases: /rainbowarmour, /ra
+	permission: skript.donor
+	trigger:
+		set {_fail} to false
+		helmet of player is not a leather helmet:
+			set {_fail} to true
+		chestplate of player is not a leather chestplate:
+			set {_fail} to true
+		boots of player is not a leather boots:
+			set {_fail} to true
+		leggings of player are not leather pants:
+			set {_fail} to true
+		{_fail} is false:
+			set {_missing} to 0
+			1st line of player's helmet's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+				add 1 to {_missing}
+			1st line of player's chestplate's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+				add 1 to {_missing}
+			1st line of player's legging's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+				add 1 to {_missing}
+			1st line of player's boot's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+				add 1 to {_missing}
+			{_missing} < 4:
+				set the 1st line of player's helmet's lore to "<red>Qrid <green>Rainbow <blue>Armor"
+				set the 1st line of player's chestplate's lore to "<red>Qrid <green>Rainbow <blue>Armor"
+				set the 1st line of player's legging's lore to "<red>Qrid <green>Rainbow <blue>Armor"
+				set the 1st line of player's boot's lore to "<red>Qrid <green>Rainbow <blue>Armor"
+				strike lightning effect at player
+				send "<light green>Behold, <green>%name of player%<light green>! Your armor has been blessed by <orange>Qrid <light green>itself!" to player
+			else:
+				send "<light red>You already have Rainbow Armor, <green>%name of player%<light green>.<reset>" to player
+		else:
+			send "<light red>You must have full leather armor on for this to work!<reset>" to player
+			
+			
+every 2 real seconds:
+	loop all players:
+		loop-player has permission "skript.donor"
+		{Donor %name of loop-player%.color} is not set:
+			set {Donor %name of loop-player%.color} to 1
+		else:
+			add 1 to {Donor %name of loop-player%.color}
+			{Donor %name of loop-player%.color} > 6
+			set {Donor %name of loop-player%.color} to 1
+		1st line of loop-player's helmet's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+			loop-player has permission "skript.donor"
+			{Donor %name of loop-player%.color} is 1:
+				dye loop-player's helmet (159, 0, 255)
+			{Donor %name of loop-player%.color} is 2:
+				dye loop-player's helmet (0, 0, 255)
+			{Donor %name of loop-player%.color} is 3:
+				dye loop-player's helmet (28, 172, 120)
+			{Donor %name of loop-player%.color} is 4:
+				dye loop-player's helmet (255, 255, 0)
+			{Donor %name of loop-player%.color} is 5:
+				dye loop-player's helmet (255, 127, 0)
+			{Donor %name of loop-player%.color} is 6:
+				dye loop-player's helmet (255, 0, 0)
+		1st line of loop-player's chestplate's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+			loop-player has permission "skript.donor"
+			{Donor %name of loop-player%.color} is 1:
+				dye loop-player's chestplate (159, 0, 255)
+			{Donor %name of loop-player%.color} is 2:
+				dye loop-player's chestplate (0, 0, 255)
+			{Donor %name of loop-player%.color} is 3:
+				dye loop-player's chestplate (28, 172, 120)
+			{Donor %name of loop-player%.color} is 4:
+				dye loop-player's chestplate (255, 255, 0)
+			{Donor %name of loop-player%.color} is 5:
+				dye loop-player's chestplate (255, 127, 0)
+			{Donor %name of loop-player%.color} is 6:
+				dye loop-player's chestplate (255, 0, 0)
+		1st line of loop-player's legging's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+			loop-player has permission "skript.donor"
+			{Donor %name of loop-player%.color} is 1:
+				dye loop-player's legging (159, 0, 255)
+			{Donor %name of loop-player%.color} is 2:
+				dye loop-player's legging (0, 0, 255)
+			{Donor %name of loop-player%.color} is 3:
+				dye loop-player's legging (28, 172, 120)
+			{Donor %name of loop-player%.color} is 4:
+				dye loop-player's legging (255, 255, 0)
+			{Donor %name of loop-player%.color} is 5:
+				dye loop-player's legging (255, 127, 0)
+			{Donor %name of loop-player%.color} is 6:
+				dye loop-player's legging (255, 0, 0)
+		1st line of loop-player's boot's lore is "<red>Qrid <green>Rainbow <blue>Armor":
+			loop-player has permission "skript.donor"
+			{Donor %name of loop-player%.color} is 1:
+				dye loop-player's boot (159, 0, 255)
+			{Donor %name of loop-player%.color} is 2:
+				dye loop-player's boot (0, 0, 255)
+			{Donor %name of loop-player%.color} is 3:
+				dye loop-player's boot (28, 172, 120)
+			{Donor %name of loop-player%.color} is 4:
+				dye loop-player's boot (255, 255, 0)
+			{Donor %name of loop-player%.color} is 5:
+				dye loop-player's boot (255, 127, 0)
+			{Donor %name of loop-player%.color} is 6:
+				dye loop-player's boot (255, 0, 0)
+#---------------------------------------------------------------------
+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+#DONOR+
+#---------------------------------------------------------------------	
+
+on login:
+	player does not have permission "skript.mod"
+	player has permission "skript.donor+"
+	strike lightning effect at player

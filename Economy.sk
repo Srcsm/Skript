@@ -1,0 +1,150 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+	
+	
+command /balance [<text>]:
+	aliases: /bal
+	trigger:
+		arg-1 is set:
+			player has permission "skript.mod":
+				set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+				set {_name::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+				size of {_uuid::*} is 1:
+					set {_bal} to index 0 of objects in column "balance" from result of query "SELECT balance FROM players WHERE uuid = '%{_uuid::*}%'"
+					set {_silver} to floor({_bal} / 100)
+					set {_copper} to {_bal} - {_silver} * 100
+					set {_gold} to floor({_silver} / 100)
+					set {_silver} to {_silver} - {_gold} * 100
+					send "<green>%{_name::*}%<light green>'s Balance: <light yellow>%{_gold}% Gold<light green>, <gray>%{_silver}% Silver<light green>, and <gold>%{_copper}% Copper<reset>" to player
+				else:
+					send "<light red>Player name was ambiguous. Please use exact name.<reset>" to player
+			else:
+				send "<light red>Sorry, only <indigo>Mod <light red>and above can check other balances.<reset>" to player
+		else:
+			set {_bal} to index 0 of objects in column "balance" from result of query "SELECT balance FROM players WHERE uuid = '%UUID of player%'" 
+			set {_silver} to floor({_bal} / 100)
+			set {_copper} to {_bal} - {_silver} * 100
+			set {_gold} to floor({_silver} / 100)
+			set {_silver} to {_silver} - {_gold} * 100
+			send "<light green>Balance: <light yellow>%{_gold}% Gold<light green>, <gray>%{_silver}% Silver<light green>, and <gold>%{_copper}% Copper<reset>" to player
+		
+command /setbal <text> <number>:
+	permission: skript.admin
+	trigger:
+		set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+		size of {_uuid::*} is 1:
+			update "UPDATE players SET balance = '%arg-2%' WHERE uuid = '%{_uuid::*}%'"
+			send "<light green>Set player's balance to %arg-2%.<reset>" to player
+		else:
+			send "<light red>Player name was ambiguous. Please use exact name.<reset>" to player
+			
+command /pay <text> <number> <text="C">:
+	trigger:
+		set {_bal} to index 0 of objects in column "balance" from result of query "SELECT balance FROM players WHERE uuid = '%UUID of player%'" 
+		set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+		set {_name::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+		size of {_uuid::*} is 1:
+			if "%arg-3%" is "Copper" or "C":
+				set {_payment} to arg-2
+			else if "%arg-3%" is "Silver" or "S":
+				set {_payment} to arg-2 * 100
+			else if "%arg-3%" is "Gold" or "G":
+				set {_payment} to arg-2 * 10000
+			else:
+				send "<light red>Invalid currency. Only <light yellow>Gold (G)<light red>, <gray>Silver (S)<light red>, and <gold>Copper (C) <light red>is allowed.<reset>" to player
+				stop trigger
+			set {_balOther} to index 0 of objects in column "balance" from result of query "SELECT balance FROM players WHERE uuid = '%{_uuid::*}%'"
+			{_bal} - {_payment} >= 0:
+				set {_bal} to {_bal} - {_payment}
+				set {_balOther} to {_balOther} + {_payment}
+				update "UPDATE players SET balance = '%{_bal}%' WHERE uuid = '%UUID of player%'"
+				update "UPDATE players SET balance = '%{_balOther}%' WHERE uuid = '%{_uuid::*}%'"
+				send "<light green>Payment successful.<reset>" to player
+			else:
+				send "<light red>You do not have that much to pay with.<reset>" to player
+		else:
+			send "<light red>Player name was ambiguous. Please use exact name.<reset>" to player
+
+command /now:
+	permission: skript.admin
+	trigger:
+		set {_date} to now
+		set {_date::*} to {_date} split at " "
+		set {_date} to {_date::1}
+		send "Now: %now%" to console
+		
+
+			
+command /economy <text> <text> <number> [<text>]:
+	permission: skript.admin
+	aliases: /econ
+	trigger:
+		set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+		set {_name::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+		size of {_uuid::*} is 1:
+			set {_balOther} to index 0 of objects in column "balance" from result of query "SELECT balance FROM players WHERE uuid = '%{_uuid::*}%'"
+			"%arg-1%" is "Add":
+				arg-3 is greater than 0:
+					set {_balOther} to {_balOther} + arg-3
+					update "UPDATE players SET balance = '%{_balOther}%' WHERE uuid = '%{_uuid::*}%'"
+					send "<light green>Addition successful.<reset>" to player
+					loop all players:
+						"%UUID of loop-player%" is "%{_uuid::*}%"
+						arg-4 is set:
+							send "<gold>Qrid <light green>has given you <gold>%arg-3% Copper <light green>for %arg-4%.<reset>" to loop-player
+						else:
+							send "<gold>Qrid <light green>has given you <gold>%arg-3% Copper<light green>.<reset>" to loop-player
+				else:
+					send "<light red>You must input a positive number. Use ""/econ Subtract [Number]"" to remove currency.<reset>" to player
+			"%arg-1%" is "Subtract":
+				arg-3 is greater than 0:
+					set {_balOther} to {_balOther} - arg-3
+					{_balOther} >= 0:
+						update "UPDATE players SET balance = '%{_balOther}%' WHERE uuid = '%{_uuid::*}%'"
+						send "<light green>Removal successful.<reset>" to player
+						loop all players:
+							"%UUID of loop-player%" is "%{_uuid::*}%"
+							arg-4 is set:
+								send "<gold>Qrid <light red>has taken <gold>%arg-3% Copper <light red>from you for %arg-4%.<reset>" to loop-player
+							else:
+								send "<gold>Qrid <light red>has taken <gold>%arg-3% Copper<light red>from you.<reset>" to loop-player
+					else:
+						send "<light red>That would put <green>%{_name::*}% <light red>in debt. Don't do that.<reset>" to player
+				else:
+					send "<light red>You must input a positive number. Use ""/econ Add [Number]"" to add currency.<reset>" to player
+		else:
+			send "<light red>Player name was ambiguous. Please use exact name.<reset>" to player
+			
+command /top:
+	trigger:
+		set {_names::*} to objects in column "name" from result of query "SELECT name FROM players WHERE balance <> '0' ORDER BY balance DESC"
+		set {_balances::*} to objects in column "balance" from result of query "SELECT balance FROM players WHERE balance <> '0' ORDER BY balance DESC"
+		size of {_names::*} > 0:
+			set {_num} to 1
+			send "<light green>~~~ Players With The Most Currency ~~~<reset>" to player
+			loop 5 times:
+				set {_bal} to {_balances::%{_num}%}
+				set {_silver} to floor({_bal} / 100)
+				set {_copper} to {_bal} - {_silver} * 100
+				set {_gold} to floor({_silver} / 100)
+				set {_silver} to {_silver} - {_gold} * 100
+				send "<light green>%{_num}%. <green>%{_names::%{_num}%}% <light green>- <light yellow>%{_gold}% Gold<light green>, <gray>%{_silver}% Silver<light green>, & <gold>%{_copper}% Copper<reset>" to player
+				add 1 to {_num}
+			
+			
+on login:
+	set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE uuid = '%UUID of player%'"
+	size of {_uuid::*} is 1:
+		set {_name} to index 0 of objects in column "name" from result of query "SELECT name FROM players WHERE uuid = '%UUID of player%'"
+		set {_lastSeen} to index 0 of objects in column "last_seen" from result of query "SELECT last_seen FROM players WHERE uuid = '%UUID of player%'"
+		set {_date} to "%now%"
+		set {_date::*} to {_date} split at " "
+		set {_date} to {_date::1}
+		"%{_lastSeen}%" is not "%{_date}%"
+		execute console command "/econ Add %name of player% 25 logging in on %{_date}%"
+		update "UPDATE players SET last_seen = '%{_date}%' WHERE uuid = '%UUID of player%'"
+		
+		

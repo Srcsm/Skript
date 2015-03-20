@@ -1,0 +1,91 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+	
+command /stats [<player>]:
+	trigger:
+		arg-1 is not set:
+			send "<light green>----------%player%<light green>'s stats----------<reset>" to player
+			set {_sword} to index 0 of objects in column "sword" from result of query "SELECT sword FROM stats WHERE player = '%player%'"
+			send "<light green>Swordsmanship: %{_sword}%<reset>" to player
+			set {_axe} to index 0 of objects in column "axe" from result of query "SELECT axe FROM stats WHERE player = '%player%'"
+			send "<light green>Axes: %{_axe}%<reset>" to player
+			set {_shovel} to index 0 of objects in column "shovel" from result of query "SELECT shovel FROM stats WHERE player = '%player%'"
+			send "<light green>Digging: %{_shovel}%<reset>" to player
+			set {_pickaxe} to index 0 of objects in column "pickaxe" from result of query "SELECT pickaxe FROM stats WHERE player = '%player%'"
+			send "<light green>Mining: %{_pickaxe}%<reset>" to player
+			set {_archery} to index 0 of objects in column "archery" from result of query "SELECT archery FROM stats WHERE player = '%player%'"
+			send "<light green>Archery: %{_archery}%<reset>" to player
+			set {_light_armor} to index 0 of objects in column "light_armor" from result of query "SELECT light_armor FROM stats WHERE player = '%player%'"
+			send "<light green>Light Armor: %{_light_armor}%<reset>" to player
+			set {_heavy_armor} to index 0 of objects in column "heavy_armor" from result of query "SELECT heavy_armor FROM stats WHERE player = '%player%'"
+			send "<light green>Heavy Armor: %{_heavy_armor}%<reset>" to player
+			
+on login:
+	set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE uuid = '%UUID of player%'"
+	size of {_exists::*} is not 1:
+		send "[Skript SQL] Recording player to database" to console
+		update "INSERT INTO players (name, uuid) VALUES ('%name of player%', '%UUID of player%')"
+	else:
+		set {_nameChanged} to index 0 of objects in column "name" from result of query "SELECT name FROM players WHERE uuid = '%UUID of player%'"
+		"%{_nameChanged}%" is not "%name of player%":
+			send "[Skript SQL] Player has changed their name; Updating the database" to console
+			update "UPDATE players SET name = '%name of player%' WHERE uuid = '%UUID of player%'"
+		else:
+			send "[Skript SQL] Player has no updates to be recorded" to console
+		player has permission "skript.admin":
+			update "UPDATE players SET rank = 'Admin' WHERE uuid = '%UUID of player%'"
+			stop trigger
+		player has permission "skript.mod":
+			update "UPDATE players SET rank = 'Mod' WHERE uuid = '%UUID of player%'"
+			stop trigger
+		player has permission "skript.donor+":
+			update "UPDATE players SET rank = 'Donor+' WHERE uuid = '%UUID of player%'"
+			stop trigger
+		player has permission "skript.donor":
+			update "UPDATE players SET rank = 'Donor' WHERE uuid = '%UUID of player%'"
+			stop trigger
+		update "UPDATE players SET rank = 'Default' WHERE uuid = '%UUID of player%'"
+			
+			
+command /uuid <text>:
+	permission: skript.mod
+	usage: /uuid [Partial Name of Player]
+	trigger:
+		"%arg-1%" is not ""
+		set {_uuid ids::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) like LOWER('%%%arg-1%%%')"
+		set {_uuid names::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) like LOWER('%%%arg-1%%%')"
+		size of {_uuid ids::*} is 0:
+			send "<light red>No players recorded<reset>" to player
+		else:
+			size of {_uuid names::*} is size of {_uuid ids::*}
+			command sender is console:
+				send "<green>----------UUID Results----------" to console
+				loop {_uuid ids::*}:
+					set {_name} to {_uuid names::%loop-index%}
+					send "Name: <green>%{_name}%<reset>" to console
+					send "UUID: <green>%loop-value%<reset>" to console 
+			else:
+				send "<green>----------UUID Results----------" to player
+				loop {_uuid ids::*}:
+					set {_name} to {_uuid names::%loop-index%}
+					send "Name: <green>%{_name}%<reset>" to player
+					send "UUID: <green>%loop-value%<reset>" to player 
+					send "<green>-------------------------------<reset>" to player
+				
+				
+command /rank <text> <text>:
+	permission: skript.admin
+	trigger:
+		set {_player::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+		set {_name::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+		size of {_player::*} is 1:
+			update "UPDATE players SET rank = '%arg-2%' WHERE uuid = '%{_player::*}%'"
+			command sender is player:
+				send "<green>%{_name::*}% <light green>was given the Rank of <light yellow>%arg-2%<light green>.<reset>" to player
+			command sender is console:
+				send "<green>%{_name::*}% <light green>was given the Rank of <light yellow>%arg-2%<light green>.<reset>" to console
+		else:
+			send "<light red>Name was too ambiguous. Please be more specific.<reset>" to command sender

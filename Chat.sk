@@ -1,0 +1,138 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+
+on chat:
+	cancel event
+	if player has permission "skript.admin":
+		set {_rank} to "<light red>Admin<reset>"
+	else if player has permission "skript.mod":
+		set {_rank} to "<indigo>Mod<reset>"
+	else if player has permission "skript.donor+":
+		set {_rank} to "<gold>Donor<green>+<reset>"
+	else if player has permission "skript.donor":
+		set {_rank} to "<gold>Donor<reset>"
+	else:
+		set {_rank} to "<grey>Normal User<reset>"
+	set {_currentGuild::*} to objects in column "name" from result of query "SELECT g.name FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.status = 'Member' AND x.uuid = '%UUID of player%'"
+	size of {_currentGuild::*} is greater than 0:
+		set {_inAGuild} to true
+	else:
+		set {_inAGuild} to false
+	{_inAGuild} is true:
+		set {_guildId} to index 0 of objects in column "guild_id" from result of query "SELECT g.guild_id FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%UUID of player%'"
+		set {_guildName} to index 0 of objects in column "name" from result of query "SELECT g.name FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%UUID of player%'"
+		set {_rankLieutenant::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.lieutenant = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+		set {_rankCaptain::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+		{_rankLieutenant::*} contains "%name of player%":
+			set {_chatted} to true
+			send json "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%<gold>Guild: <light yellow>%{_guildName}% (Lieutenant)<reset>%new line%Click name for more actions" run "/getaction %player% %uuid of player%" then "<white>: %message%<reset>" to all players
+		{_rankCaptain::*} contains "%name of player%":
+			set {_chatted} to true
+			send json "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%<gold>Guild: <light yellow>%{_guildName}% (Captain)<reset>%new line%Click name for more actions" run "/getaction %player% %uuid of player%" then "<white>: %message%<reset>" to all players
+		{_chatted} is not set
+		send json "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%<gold>Guild: <light yellow>%{_guildName}%<reset>%new line%Click name for more actions" run "/getaction %player% %uuid of player%" then "<white>: %message%<reset>" to all players
+	else:
+		send json "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%Click name for more actions" run "/getaction %player% %uuid of player%" then "<white>: %message%<reset>" to all players
+	make player execute command "/ircsay %message%"
+	log "%name of event-player%: %message%" to "Chat.log"
+	
+command /getaction <player> <text>:
+	trigger:
+		send "<grey>- Actions for %arg 1% -" to player
+		set {_guildId::*} to objects in column "guild_id" from result of query "SELECT g.guild_id FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%arg-2%'"
+		size of {_guildId::*} is 1:
+			set {_guildName} to index 0 of objects in column "name" from result of query "SELECT g.name FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%arg-2%'"
+		if player has permission "skript.mod":
+			size of {_guildId::*} is 1:
+				send json "<grey>Normal: " then "<light green> [Msg] " suggest "/msg %arg 1% " then "<light green> [TP] " run "/tp %arg 1%" then "<light green> [Guild Info] " run "/guild info %{_guildName}%" to player
+			else:
+				send json "<grey>Normal: " then "<light green> [Msg] " suggest "/msg %arg 1% " then "<light green> [TP] " run "/tp %arg 1%" to player
+		else:
+			size of {_guildId::*} is 1:
+				send json "<grey>Normal: " then "<light green> [Msg] " suggest "/msg %arg 1% " then "<light green> [Guild Info] " run "/guild info %{_guildName}%" to player
+			else:
+				send json "<grey>Normal: " then "<light green> [Msg] " suggest "/msg %arg 1% " to player
+		player has permission "skript.mod"
+		if {Bank %arg 1%.chest} is set:
+			send json "<indigo>Mod<grey>: " then "<light green> [Bank] " run "/bank open %arg 1%" then "<yellow> [Warnings] " run "/check %arg-1%" then "<yellow> [Mute] " run "/mute %arg 1%" then "<yellow> [Un-Mute] " run "/unmute %arg 1%" to player
+		else:
+			send json "<indigo>Mod<grey>: " then "<yellow> [Warnings] " run "/check %arg-1%" then "<yellow> [Mute] " run "/mute %arg 1%" then "<yellow> [Un-Mute] " run "/unmute %arg 1%" to player
+		player has permission "skript.admin"
+		send json "<light red>Admin<grey>: " then "<light red> [Kick] <reset>" tooltip "Provide a reason" suggest "/kick %arg 1% " then "<red> [Ban] <reset>" tooltip "Provide a reason" suggest "/ban %arg 1% " to player
+
+command /staff [<text>] <text>:
+	permission: skript.mod
+	aliases: /s
+	trigger:
+		if player has permission "skript.admin":
+			set {_rank} to "<light red>Admin<reset>"
+		else if player has permission "skript.mod":
+			set {_rank} to "<indigo>Mod<reset>"
+		if "%arg-1%" is "Etzelia" or "Etz":
+			set {_name} to "Etzelia"
+		else if "%arg-1%" is "Yuushi" or "Yuu":
+			set {_name} to "Yuushi"
+		else if "%arg-1%" is "1337Craft" or "1337":
+			set {_name} to "1337Craft"
+		else:
+			set {_name} to "Console"
+		loop all players:
+			loop-player has permission "skript.mod"
+			command sender is console:
+				send json "<gold>[Staff Chat] " then "<light green>%{_name}%<reset>" tooltip "<light yellow>Console<reset>%new line%<gold>There Are No Extra -> Staff Chat<reset>" then "<gold>: %arg 2%" to loop-player
+			else:
+				arg-1 is set:
+					send json "<gold>[Staff Chat] " then "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%<gold>There Are No Extra -> Staff Chat<reset>" then "<gold>: %arg 1% %arg 2%" to loop-player
+				else:
+					send json "<gold>[Staff Chat] " then "<light green>%name of event-player%<reset>" tooltip "%{_rank}%%new line%<gold>There Are No Extra -> Staff Chat<reset>" then "<gold>: %arg 2%" to loop-player
+		command sender is console:
+			if "%arg-1%" is "Etzelia" or "Etz":
+				send "[Staff Chat] Etzelia: %arg 2%" to console
+				execute console command "/ircmsg qridstaff Etzelia: %arg 2%"
+				log "Etzelia: %arg 2%" to "StaffChat.log"
+			else if "%arg-1%" is "Yuushi" or "Yuu":
+				send "[Staff Chat] Yuushi: %arg 2%" to console
+				execute console command "/ircmsg qridstaff Yuushi: %arg 2%"
+				log "Yuushi: %arg 2%" to "StaffChat.log"
+			else if "%arg-1%" is "1337Craft" or "1337":
+				send "[Staff Chat] 1337Craft: %arg 2%" to console
+				execute console command "/ircmsg qridstaff 1337Craft: %arg 2%"
+				log "1337Craft: %arg 2%" to "StaffChat.log"
+			else:
+				arg-1 is set:
+					send "[Staff Chat] Console: %arg 1% %arg 2%" to console
+					execute console command "/ircmsg qridstaff Console: %arg 1% %arg 2%"
+					log "Console: %arg 1% %arg 2%" to "StaffChat.log"
+				else:
+					send "[Staff Chat] Console: %arg 2%" to console
+					execute console command "/ircmsg qridstaff Console: %arg 2%"
+					log "Console: %arg 2%" to "StaffChat.log"
+		else:
+			arg-1 is set:
+				send "[Staff Chat] %name of player%: %arg 1%  %arg 2%" to console
+				execute console command "/ircmsg qridstaff %name of player%: %arg 1% %arg 2%"
+				log "%name of player%: %arg 1%  %arg 2%" to "StaffChat.log"
+			else:
+				send "[Staff Chat] %name of player%: %arg 2%" to console
+				execute console command "/ircmsg qridstaff %name of player%: %arg 2%"
+				log "%name of player%: %arg 2%" to "StaffChat.log"
+		
+		
+		
+command /se <text>:
+	permission: skript.admin
+	trigger:
+		execute console command "/staff Etzelia %arg-1%"
+		
+command /sy <text>:
+	permission: skript.admin
+	trigger:
+		execute console command "/staff Yuushi %arg-1%"
+		
+command /sl <text>:
+	permission: skript.admin
+	trigger:
+		execute console command "/staff 1337Craft %arg-1%"

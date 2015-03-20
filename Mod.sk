@@ -1,0 +1,185 @@
+#All Skripts in this file are for Moderator level and above
+
+command /inv <player>:
+	trigger:
+		if command sender is console:
+			loop all items in player-argument's inventory:
+				add "%loop-item%" to {_Admin inv::*}
+			send "%name of argument-player%'s inventory contains: %{_Admin inv::*}%" to console
+		else if command sender has permission "skript.admin":
+			open player-argument's inventory to the command sender
+		else if command sender has permission "skript.mod":
+			loop all items in player-argument's inventory:
+				add "%loop-item%" to {_Admin inv::*}
+			send "<green>%name of argument-player%<light green>'s inventory contains: <yellow>%{_Admin inv::*}%<reset>" to command sender
+		else:
+			send "<light red>You do not have access to this command.<reset>" to command sender
+			
+
+	
+on login:
+	player has permission "skript.mod":
+		set login message to ""
+	player's name is "Etzelia":
+		set login message to ""
+	
+command /vanish <text="Toggle">:
+	permission: skript.mod
+	trigger:
+		if "%arg 1%" is "On":
+			set {Mod %player%.vanish} to "On"
+			set player's tablist name to ""
+			loop all players:
+				loop-player does not have permission "skript.mod"
+				hide player from loop-player
+			send "<light green>You are now hidden from all non-Staff members.<reset>" to player
+		else if "%arg 1%" is "Off":
+			set {Mod %player%.vanish} to "Off"
+			reveal player to all players
+			send "<light green>You are no longer invisible.<reset>" to player
+		else if "%arg 1%" is "Toggle":
+			if "%{Mod %player%.vanish}%" is "On":
+				set {Mod %player%.vanish} to "Off"
+				reveal player to all players
+				send "<light green>You are no longer invisible.<reset>" to player
+			else if "%{Mod %player%.vanish}%" is "Off":
+				set {Mod %player%.vanish} to "On"
+				set player's tablist name to ""
+				loop all players:
+					loop-player does not have permission "skript.mod"
+					hide player from loop-player
+				send "<light green>You are now hidden from all non-Staff members.<reset>" to player
+			else:
+				send "<light red>You have not chosen a vanish status. Use /vanish [On|Off] first.<reset>" to player
+		else:
+			send "<light red>Usage: /vanish [On|Off|Toggle]<reset>" to player
+			
+on login:
+	loop all players:
+		loop-player has permission "skript.mod"
+		"%{Mod %loop-player%.vanish}%" is "On"
+		hide loop-player from player
+		
+on logout:
+	player has permission "skript.mod"
+	"%{Mod %player%.vanish}%" is set
+	delete {Mod %player%.vanish}
+	
+on pick up:
+	{Mod %player%.vanish} is set
+	"%{Mod %player%.vanish}%" is "On"
+	cancel event
+	
+on rightclick on chest:
+	player has permission "skript.mod"
+	{Mod %player%.vanish} is set
+	"%{Mod %player%.vanish}%" is "On"
+	cancel event
+	loop all items in inventory of clicked block:
+		add loop-item to {_inv::*}
+	loop {_inv::*}:
+		add loop-value to {_chest}
+	send "<green>This chest contains: <light green>%{_inv::*}%<reset>" to player
+	
+on stepping on a pressure plate:
+	player has permission "skript.mod"
+	{Mod %player%.vanish} is set
+	"%{Mod %player%.vanish}%" is "On"
+	cancel event
+	
+on stepping on a tripwire:
+	player has permission "skript.mod"
+	{Mod %player%.vanish} is set
+	"%{Mod %player%.vanish}%" is "On"
+	cancel event
+	
+on hunger level change:
+	player has permission "skript.mod":
+		set player's hunger level to 10 
+	player's name is "Etzelia":
+		set player's hunger level to 10 
+	
+#Build Mode-----------------------------------------------------------------------------------------
+command /build:
+	permission: skript.mod
+	trigger:
+		player's gamemode is creative:
+			clear player's inventory
+			set player's gamemode to survival
+			send "<light green>You are now in <light yellow>Survival Mode" to player
+			stop trigger
+		player's gamemode is survival:
+			set {_inv::*} to all items in player's inventory
+			size of {_inv::*} is 0:
+				set player's gamemode to creative
+				send "<light green>You are now in <light yellow>Build Mode" to player
+				stop trigger
+			else:
+				send "<light red>You must empty your inventory to enter <light yellow>Build Mode" to player
+	
+on rightclick on chest:
+	player does not have permission "skript.admin"
+	player's gamemode is creative
+	cancel event
+	send "<light red>You cannot access chests in Creative mode while in Survival." to player
+	
+on drop:
+	player does not have permission "skript.admin"
+	player's gamemode is creative
+	cancel event
+	send "<light red>You cannot drop items in Creative mode while in Survival." to player
+	
+on logout:
+	player does not have permission "skript.admin"
+	player's gamemode is creative
+	clear player's inventory
+		
+command /lookup <text="All"> [<text="Small">]:
+	permission: skript.mod
+	aliases: /lu
+	usage: /lookup [All | Container | Block] [Small | Big | Huge]
+	description: Wrapper for Prism lookups. 
+	trigger:
+		"%arg-1%" is "All":
+			"%arg-2%" is "Small":
+				make player execute command "/pr l t:7d r:5"
+				set {_correct} to "true"
+			"%arg-2%" is "Big":
+				make player execute command "/pr l t:7d r:20"
+				set {_correct} to "true"
+			"%arg-2%" is "Huge":
+				make player execute command "/pr l t:7d r:100"
+				set {_correct} to "true"
+		"%arg-1%" is "Container":
+			"%arg-2%" is "Small":
+				make player execute command "/pr l t:7d r:5 a:insert a:remove"
+				set {_correct} to "true"
+			"%arg-2%" is "Big":
+				make player execute command "/pr l t:7d r:20 a:insert a:remove"
+				set {_correct} to "true"
+			"%arg-2%" is "Huge":
+				make player execute command "/pr l t:7d r:100 a:insert a:remove"
+				set {_correct} to "true"
+		"%arg-1%" is "Block":
+			"%arg-2%" is "Small":
+				make player execute command "/pr l t:7d r:5 a:break a:burn a:place"
+				set {_correct} to "true"
+			"%arg-2%" is "Big":
+				make player execute command "/pr l t:7d r:20 a:break a:burn a:place"
+				set {_correct} to "true"
+			"%arg-2%" is "Huge":
+				make player execute command "/pr l t:7d r:100 a:break a:burn a:place"
+				set {_correct} to "true"
+		"%arg-1%" is "?":
+			send "<light green>/lookup [Type] [Radius]<reset>" to player
+			send "<light green>Type - All: Searches all parameters.<reset>" to player
+			send "<light green>Type - Container: Searches only inserts and removing from containers.<reset>" to player
+			send "<light green>Type - Chest: Searches only block breaking, block placing, and block burning.<reset>" to player
+			send "<light green>Radius - Small: Searches using a radius of 5.<reset>" to player
+			send "<light green>Radius - Big: Searches using a radius of 20.<reset>" to player
+			send "<light green>Radius - Hude: Searches using a radius of 100.<reset>" to player
+			send "<light green>You can use ""/lookup"" with no parameters to default to ""/lookup All Small""<reset>" to player
+			set {_correct} to "true"
+		"%{_correct}%" is not "true"
+		send "<light red>Incorrect command usage. Use /lookup ? for information.<reset>" to player
+		

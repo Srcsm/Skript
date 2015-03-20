@@ -1,0 +1,34 @@
+# Death messages!
+
+on death of player:
+	attacker's name is "Etzelia":
+		set death message to "Etzelia brought his wrath down upon %victim%"
+	attacker is a creeper:
+		set death message to "The creeper only wanted a hug, %victim%. Why did you squeeze so hard?"
+	attacker is a skeleton:
+		set death message to "A skeleton used %victim% as a pin cushion."
+	attacker is a zombie:
+		set death message to "%victim% got torn apart by a zombie."
+	attacker is a ghast:
+		set death message to "%victim%'s bled to death from the ears. The ghast just wouldn't stop..."
+	attacker is a wolf:
+		set death message to "A wolf used %victim% as a chew toy."
+	attacker is an enderman:
+		set death message to "An enderman mistook %victim% for a block and took him to The End."
+	attacker is a ender dragon:
+		set death message to "%victim% got burnt to a crisp by an ender dragon."
+	attacker is a spider:
+		set death message to "%victim% was trapped in a spider's web."
+	attacker is a witch:
+		set death message to "A witch cast a death curse on %victim%. It worked..."
+	attacker is a silverfish:
+		set death message to "%victim% got killed by a silverfish. How pathetic."
+	attacker is a slime:
+		set death message to "%victim% got slimed. Gross."
+	else:
+		damage cause is fall:
+			set death message to "%victim% was dancing on ledges. Bad call, %victim%."
+		damage cause is drowning:
+			set death message to "You can't breathe water, %victim%."
+		damage cause is lava:
+			set death message to "%victim% mistook a lava pool for a hot tub."

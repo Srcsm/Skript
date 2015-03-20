@@ -1,0 +1,311 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+	
+#set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE uuid = '%UUID of player%'"
+#set {_nameChanged} to index 0 of objects in column "name" from result of query "SELECT name FROM players WHERE uuid = '%UUID of player%'"
+#update "INSERT INTO players (name, uuid) VALUES ('%name of player%', '%UUID of player%')"
+
+command /guilds <text="Info"> [<text>]:
+	aliases: /guild
+	description: Commands for the Qrid Guilds system
+	trigger:
+		set {_currentGuild::*} to objects in column "name" from result of query "SELECT g.name FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.status = 'Member' AND x.uuid = '%UUID of player%'"
+		size of {_currentGuild::*} is greater than 0:
+			set {_inAGuild} to true
+		else:
+			set {_inAGuild} to false
+		{_inAGuild} is true:
+			set {_guildId} to index 0 of objects in column "guild_id" from result of query "SELECT g.guild_id FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%UUID of player%'"
+			set {_guildName} to index 0 of objects in column "name" from result of query "SELECT g.name FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%UUID of player%'"
+			set {_guildMotto} to index 0 of objects in column "motto" from result of query "SELECT g.motto FROM guild g, guild_player_xref x WHERE g.guild_id = x.guild_id AND x.uuid = '%UUID of player%'"
+			set {_rankLieutenant::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.lieutenant = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+			set {_rankCaptain::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+			set {_rankMember::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'No' AND x.lieutenant = 'No' AND x.status = 'Member' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+		"%arg-1%" is "Info":
+			arg-2 is not set:
+				{_inAGuild} is true:
+					send "<light yellow>~~~ Guild Info ~~~<reset>" to player
+					send "<light green>Name: <light yellow>%{_guildName}%<reset>" to player
+					send "<light green>Motto: <light yellow>%{_guildMotto}%<reset>" to player
+					send "<light green>Captain: <light yellow>%{_rankCaptain::*}%<reset>" to player
+					size of {_rankLieutenant::*} is greater than 0:
+						size of {_rankLieutenant::*} is greater than 1:
+							send "<light green>Lieutenants: <light yellow>%{_rankLieutenant::*}%<reset>" to player
+						else:
+							send "<light green>Lieutenant: <light yellow>%{_rankLieutenant::*}%<reset>" to player
+					size of {_rankMember::*} is greater than 0:
+						size of {_rankMember::*} is greater than 1:
+							send "<light green>Members: <light yellow>%{_rankMember::*}%<reset>" to player
+						else:
+							send "<light green>Member: <light yellow>%{_rankMember::*}%<reset>" to player
+					send "<green>Allies: <light green>Coming Soon!<reset>" to player
+					send "<red>Enemies: <light red>Coming Soon!<reset>" to player
+				{_inAGuild} is false:
+					send "<light red>You are not in a <light yellow>Guild<light red>.<reset>" to player
+			else:
+				set {_otherGuild::*} to objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+				size of {_otherGuild::*} is greater than 0:
+					set {_guildId} to index 0 of objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+					set {_guildName} to index 0 of objects in column "name" from result of query "SELECT g.name FROM guild g WHERE g.guild_id = '%{_guildId}%'"
+					set {_guildMotto} to index 0 of objects in column "motto" from result of query "SELECT g.motto FROM guild g WHERE g.guild_id = '%{_guildId}%'"
+					set {_rankLieutenant::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.lieutenant = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+					set {_rankCaptain::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+					set {_rankMember::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'No' AND x.lieutenant = 'No' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%')"
+					send "<light yellow>~~~ Other Guild Info ~~~<reset>" to player
+					send "<light green>Name: <light yellow>%{_guildName}%<reset>" to player
+					send "<light green>Motto: <light yellow>%{_guildMotto}%<reset>" to player
+					send "<light green>Captain: <light yellow>%{_rankCaptain::*}%<reset>" to player
+					size of {_rankLieutenant::*} is greater than 0:
+						size of {_rankLieutenant::*} is greater than 1:
+							send "<light green>Lieutenants: <light yellow>%{_rankLieutenant::*}%<reset>" to player
+						else:
+							send "<light green>Lieutenant: <light yellow>%{_rankLieutenant::*}%<reset>" to player
+					size of {_rankMember::*} is greater than 0:
+						size of {_rankMember::*} is greater than 1:
+							send "<light green>Members: <light yellow>%{_rankMember::*}%<reset>" to player
+						else:
+							send "<light green>Member: <light yellow>%{_rankMember::*}%<reset>" to player
+					send "<green>Allies: <light green>Coming Soon!<reset>" to player
+					send "<red>Enemies: <light red>Coming Soon!<reset>" to player
+				else:
+					send "<light red>Sorry, a <light yellow>Guild <light red>matching that name does not exist." to player
+		"%arg-1%" is "Create":
+			{_inAGuild} is true:
+				send "<light red>You are already in a <light yellow>Guild<light red>. You must leave your current one first.<reset>" to player
+			{_inAGuild} is false:
+				arg-2 is set:
+					arg-2 contains "'" or """":
+						send "<light red>Sorry, but the symbols ' and "" are not allowed in <light yellow>Guild <light red>names." to player
+						stop trigger
+					set {_guildExists::*} to objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE LOWER(name) = LOWER('%arg-2%')"
+					size of {_guildExists::*} is 0:
+						update "INSERT INTO guild (name, motto) VALUES ('%arg-2%', 'Default motto! Change me!')"
+						set {_guildId} to index 0 of objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE name = '%arg-2%'"
+						update "INSERT INTO guild_player_xref (guild_id, uuid, captain, lieutenant, status) VALUES ('%{_guildId}%', '%UUID of player%', 'Yes', 'No', 'Member')"
+						send "<light green>Congratulations, %name of player%<light green>. You are the new Captain of <light yellow>Guild %arg-2%<light green>.<reset>" to player
+						send "<light green>Now you just need to change your motto using ""/guild motto [New Motto]""" to player
+						broadcast "<green>%name of player%<light green> has created a new <light yellow>Guild<light green> named <light yellow>%arg-2%<reset>"
+					else:
+						send "<light red>This <light yellow>Guild<light red> already exists. Please choose another name.<reset>" to player
+				else:
+					send "<light red>You must name your <light yellow>Guild<light red>!<reset>" to player
+		"%arg-1%" is "Join":
+			{_inAGuild} is true:
+				send "<light red>You are already in a <light yellow>Guild<light red>. You must leave your current one first.<reset>" to player
+			{_inAGuild} is false:
+				arg-2 is set:
+					set {_guildId::*} to objects in column "guild_id" from result of query "SELECT g.guild_id FROM guild g WHERE g.name LIKE '%%%arg-2%%%'"
+					size of {_guildId::*} is 1:
+						set {_pending::*} to objects in column "status" from result of query "SELECT status FROM guild_player_xref WHERE status  = 'Pending' AND guild_id = '%{_guildId::*}%'"
+						size of {_pending::*} is 1:
+							send "<light red>You have already requested to join that <light yellow>Guild<light red>.<reset>" to player
+						else:
+							set {_rankLieutenant::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.lieutenant = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId::*}%')"
+							set {_rankCaptain::*} to objects in column "name" from result of query "SELECT p.name FROM guild_player_xref x, players p WHERE x.captain = 'Yes' AND p.uuid = x.uuid AND p.uuid IN (SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId::*}%')"
+							update "INSERT INTO guild_player_xref (guild_id, uuid, captain, lieutenant, status) VALUES ('%{_guildId::*}%', '%UUID of player%', 'No', 'No', 'Pending')"
+							loop all players:
+								{_rankLieutenant::*} contains "%name of loop-player%":
+									send "<green>%name of player% <light green> wishes to join your <light yellow>Guild<light green>.<reset>" to loop-player
+									send "<light green>Use ""/guild add %name of player%"" to accept them.<reset>" to loop-player
+								{_rankCaptain::*} contains "%name of loop-player%":
+									send "<green>%name of player% <light green> wishes to join your <light yellow>Guild<light green>.<reset>" to loop-player
+									send "<light green>Use ""/guild add %name of player%"" to accept them.<reset>" to loop-player
+							send "<light green>A message has been sent to the Captain and any Lieutenants available for that <light yellow>Guild<light green>.<reset>" to player
+					else:
+						send "<light red>There is more than one <light yellow>Guild <light red>that matches that name. Be more specific.<reset>" to player
+				else:
+					send "<light red>You must specify a <light yellow>Guild<light red> to join.<reset>" to player
+		"%arg-1%" is "Add":
+			arg-2 is set:
+				set {_uuids::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE name = '%arg-2%'"
+				size of {_uuids::*} is 1:
+					set {_captainOrLieutenant::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE (captain = 'Yes' OR lieutenant = 'Yes') AND uuid = '%UUID of player%'"
+					size of {_captainOrLieutenant::*} is 0:
+						send "<light red>Only a Captain or Lieutenant can use this command.<reset>" to player
+						stop trigger
+					set {_otherInAGuild::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE status = 'Member' AND uuid = '%{_uuids::*}%'"
+					size of {_otherInAGuild::*} is 0:
+						set {_request::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE status = 'Pending' AND uuid = '%{_uuids::*}%'"
+						size of {_request::*} is 1:
+							{_rankLieutenant::*} contains "%name of player%":
+								update "UPDATE guild_player_xref SET status = 'Member' WHERE uuid = '%{_uuids::*}%'"
+								broadcast "<green>%arg-2% <light green>has joined <light yellow>Guild %{_guildName}%<light green>.<reset>"
+							{_rankCaptain::*} contains "%name of player%":
+								update "UPDATE guild_player_xref SET status = 'Member' WHERE uuid = '%{_uuids::*}%'"
+								broadcast "<green>%arg-2% <light green>has joined <light yellow>Guild %{_guildName}%<light green>.<reset>"
+						else:
+							send "<green>%arg-2% <light red>has not requested to be in your <light yellow>Guild<light red>." to player
+					else:
+						send "<green>%arg-2% <light red>is already in a <light yellow>Guild<light red>.<reset>" to player
+				else:
+					send "<light red>No player with that name exists. Please use exact name.<reset>" to player
+			else:
+				send "<light red>You must specify a player.<reset>" to player
+		"%arg-1%" is "Kick":
+			arg-2 is set:
+				set {_uuids::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE name = '%arg-2%'"
+				size of {_uuids::*} is 1:
+					set {_captainOrLieutenant::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE (captain = 'Yes' OR lieutenant = 'Yes') AND uuid = '%UUID of player%'"
+					size of {_captainOrLieutenant::*} is 0:
+						send "<light red>Only a Captain or Lieutenant can use this command.<reset>" to player
+						stop trigger
+					set {_inYourGuild::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE captain = 'No' AND status = 'Member' AND guild_id = '%{_guildId}%' AND uuid = '%{_uuids::*}%'"
+					size of {_inYourGuild::*} is 1:
+						{_rankLieutenant::*} contains "%name of player%":
+							update "DELETE FROM guild_player_xref WHERE uuid = '%{_uuids::*}%'"
+							broadcast "<green>%arg-2% <light red>has been kicked from <light yellow>Guild %{_guildName}%<light red>.<reset>"
+						{_rankCaptain::*} contains "%name of player%":
+							update "DELETE FROM guild_player_xref WHERE uuid = '%{_uuids::*}%'"
+							broadcast "<green>%arg-2% <light red>has been kicked from <light yellow>Guild %{_guildName}%<light red>.<reset>"
+					else:
+						send "<green>%arg-2% <light red>is not in your <light yellow>Guild<light red> or cannot be kicked.<reset>" to player
+				else:
+					send "<light red>No player with that name exists. Please use exact name.<reset>" to player
+			else:
+				send "<light red>You must specify a player.<reset>" to player
+		"%arg-1%" is "Motto":
+			"%name of player%" is "%{_rankCaptain::*}%":
+				arg-2 is set:
+					update "UPDATE guild SET motto = '%arg-2%' WHERE guild_id = '%{_guildId}%'"
+					send "<Light green>Your <light yellow>Guild <light green>motto was successfully changed.<reset>" to player
+				else:
+					send "<light red>You must give a motto in order to change it.<reset>" to player
+			else:
+				send "<light red>You must be the <light yellow>Guild Captain<light red> to change the motto.<reset>" to player
+		"%arg-1%" is "Leave":
+			{_inAGuild} is true:
+				{_rankCaptain::*} contains "%name of player%":
+					update "DELETE FROM guild_player_xref WHERE guild_id = '%{_guildId}%'"
+					update "DELETE FROM guild_affinity_xref WHERE (guild_1_id = '%{_guildId::*}%' OR guild_2_id = '%{_guildId::*}%')"
+					update "DELETE FROM guild WHERE guild_id = '%{_guildId}%'"
+					broadcast "<green>%name of player% <light red>has disbanded <light yellow>%{_guildName}%<light red>.<reset>"
+				else:
+					update "DELETE FROM guild_player_xref WHERE uuid = '%UUID of player%'"
+					send "<light green>You have left your <light yellow>Guild<light green>.<reset>" to player
+					loop all players:
+						{_rankCaptain::*} contains "%name of loop-player%"
+						send "<green>%name of player% <light red>has left your <light yellow>Guild<light red>.<reset>" to loop-player
+			{_inAGuild} is false:
+				send "<light red>You are not in a <light yellow>Guild<light red>.<reset>" to player
+		"%arg-1%" is "Promote":
+			arg-2 is set:
+				set {_uuids::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE name = '%arg-2%'"
+				size of {_uuids::*} is 1:
+					set {_captainOnly::*} to objects in column "captain" from result of query "SELECT captain FROM guild_player_xref WHERE uuid = '%UUID of player%'"
+					"%{_captainOnly::*}%" is "No":
+						send "<light red>Only a Captain can use this command.<reset>" to player
+						stop trigger
+					set {_member::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%' AND status = 'Member' AND captain = 'No' AND lieutenant = 'No' AND uuid = '%{_uuids::*}%'"
+					size of {_member::*} is 1:
+						update "UPDATE guild_player_xref SET lieutenant = 'Yes' WHERE uuid = '%{_uuids::*}%'"
+						send "<light green>You have made <green>%arg-2% <light green>a Lieutenant in your <light yellow>Guild<light green>.<reset>" to player
+						loop all players:
+							"%name of loop-player%" is "%arg-2%"
+							send "<light green>You have become a Lieutenant in your <light yellow>Guild<light green>. Congratulations.<reset>" to loop-player
+					else:
+						send "<green>%arg-2% <light red>is unable to become a Lieutenant. He is either not a Member, or is already a Lieutenant.<reset>" to player
+						send "<light red>To transfer your Captain rights, use ""/guild transfer [Name of new Captain]""<reset>" to player
+				else:
+					send "<light red>No player with that name exists. Please use exact name.<reset>" to player
+			else:
+				send "<light red>You must specify a player.<reset>" to player
+		"%arg-1%" is "Transfer":
+			arg-2 is set:
+				set {_uuids::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE name = '%arg-2%'"
+				size of {_uuids::*} is 1:
+					set {_captainOnly::*} to objects in column "captain" from result of query "SELECT captain FROM guild_player_xref WHERE uuid = '%UUID of player%'"
+					"%{_captainOnly::*}%" is "No":
+						send "<light red>Only a Captain can use this command.<reset>" to player
+						stop trigger
+					set {_member::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guildId}%' AND status = 'Member' AND captain = 'No' AND uuid = '%{_uuids::*}%'"
+					size of {_member::*} is 1:
+						update "UPDATE guild_player_xref set captain = 'No', lieutenant = 'Yes' WHERE guild_id = '%{_guildId}%' AND uuid = '%UUID of player%'"
+						update "UPDATE guild_player_xref set captain = 'Yes', lieutenant = 'No' WHERE guild_id = '%{_guildId}%' AND uuid = '%{_uuids::*}%'"
+						send "<light green>You have transferred your Captain rights to <green>%arg-2%<light green>.<reset>" to player
+						send "<light green>To completely leave the <light yellow>Guild<light green>, use ""/guild leave""<reset>" to player
+						loop all players:
+							"%name of loop-player%" is "%arg-2%"
+							send "<green>%name of player% <light green>has given you Captain rights to your <light yellow>Guild, %{_guildName}%<light green>.<reset>" to loop-player
+					else:
+						send "<light red>That person is not eligible to become the new Captain of your <light yellow>Guild<light red>.<reset>" to player
+						send "<light red>To disband your <light yellow>Guild<light red>, use ""/guild leave""<reset>" to player
+				else:
+					send "<light red>No player with that name exists. Please use exact name.<reset>" to player
+			else:
+				send "<light red>You must specify a player.<reset>" to player
+		"%arg-1%" is "Ally":
+			arg-2 is set:
+				set {_guilds::*} to objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+				size of {_guilds::*} is 1:
+					set {_captainOnly::*} to objects in column "captain" from result of query "SELECT captain FROM guild_player_xref WHERE uuid = '%UUID of player%'"
+					"%{_captainOnly::*}%" is "No":
+						send "<light red>Only a Captain can use this command.<reset>" to player
+						stop trigger
+					set {_affinity::*} to objects in column "status" from result of query "SELECT status FROM guild_affinity_xref WHERE (guild_1_id = '%{_guildId}%' OR guild_2_id = '%{_guildId}%') AND (guild_1_id = '%{_guilds::*}%' OR guild_2_id = '%{_guilds::*}%')"
+					size of {_affinity::*} is 1:
+						"%{_affinity::*}%" is "Ally":
+							send "<light red>That <light yellow>Guild<light red> is already your <light green>Ally<light red>.<reset>" to player
+						else:
+							update "DELETE FROM guild_affinity_xref WHERE (guild_1_id = '%{_guildId}%' OR guild_2_id = '%{_guildId}%') AND (guild_1_id = '%{_guilds::*}%' OR guild_2_id = '%{_guilds::*}%') AND status = 'Enemy'"
+							update "INSERT INTO guild_affinity_xref (guild_1_id, guild_2_id, status, request) VALUES ('%{_guildId}%', '%{_guilds::*}%', 'Ally')"
+							send "<light green>You are now Allies.<reset>" to player
+							set {_otherGuildCaptain::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guilds::*}%' AND captain = 'Yes'"
+							loop all players:
+								{_otherGuildCaptain::*} contains "%UUID of loop-player%"
+								send "<light yellow>%{_guildName}% <light green>has ended your feud and become an Ally.<reset>" to loop-player
+					else:
+						update "INSERT INTO guild_affinity_xref (guild_1_id, guild_2_id, status, request) VALUES ('%{_guildId}%', '%{_guilds::*}%', 'Ally')"
+						send "<light green>You are now Allies.<reset>" to player
+						set {_otherGuildCaptain::*} to objects in column "uuid" from result of query "SELECT uuid FROM guild_player_xref WHERE guild_id = '%{_guilds::*}%'"
+						loop all players:
+							{_otherGuildCaptain::*} contains "%UUID of loop-player%"
+							send "<light yellow>%{_guildName}% <light green>is now Allied with your <light yellow>Guild<light green>.<reset>" to loop-player
+				else:
+					send "<light red>No <light yellow>Guild<light red> with that name exists. Please use exact name.<reset>" to player
+			else:
+				send "<light red>You must specify a <light yellow>Guild<light red>.<reset>" to player
+		"%arg-1%" is "Help":
+			send "<light yellow>~~~ Guilds Help ~~~<reset>" to player
+			send "<light yellow>/guild [Info | Join | Leave | Create]<reset>" to player
+		
+command /guildlist <number=1>:
+	aliases: /gl
+	trigger:
+		set {_allGuilds::*} to objects in column "name" from result of query "SELECT name FROM guild"
+		size of {_allGuilds::*} is greater than 0:
+			arg-2 is set:
+				set {_num} to arg-1
+				set {_startLoop} to {_num}*10-9
+				set {_endLoop} to {_num}*10
+			else:
+				set {_startLoop} to 1
+				set {_endLoop} to 10
+			set {_nextPage} to {_num}+1
+			send "<light yellow>~~~ Qrid Guilds [Page %{_num}%<light yellow>] ~~~<reset>" to player
+			while {_startLoop} <= {_endLoop}:
+				"%{_allGuilds::%{_startLoop}%}%" is not "<none>":
+					send "<light green>-- <light yellow>%{_allGuilds::%{_startLoop}%}%" to player
+				add 1 to {_startLoop}
+			send "<light green>For more, use ""/gl %{_nextPage}%""" to player
+		else:
+			send "<light red>There are no <light yellow>Guilds <light red>created right now.<reset>" to player
+			
+command /removeguild <text>:
+	permission: skript.admin
+	trigger:
+		arg-1 is set:
+			set {_guildId::*} to objects in column "guild_id" from result of query "SELECT guild_id FROM guild WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%')"
+			size of {_guildId::*} is greater than 0:
+				size of {_guildId::*} is greater than 1:
+					send "<light red>That <light yellow>Guild <light red>name matched more than one <light yellow>Guild<light red>. Be more specific.<reset>" to player
+				size of {_guildId::*} is 1:
+					set {_guildName} to index 0 of objects in column "name" from result of query "SELECT name FROM guild WHERE guild_id = '%{_guildId::*}%'"
+					update "DELETE FROM guild_player_xref WHERE guild_id = '%{_guildId::*}%'"
+					update "DELETE FROM guild_affinity_xref WHERE (guild_1_id = '%{_guildId::*}%' OR guild_2_id = '%{_guildId::*}%')"
+					update "DELETE FROM guild WHERE guild_id = '%{_guildId::*}%'"
+					broadcast "<green>%name of player% <light red>has forcefully disbanded the <light yellow>Guild %{_guildName}%<light red>.<reset>"
+		else:
+			send "<light red>You must specify a <light yellow>Guild<light red>.<reset>" to player

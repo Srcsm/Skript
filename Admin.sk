@@ -1,0 +1,34 @@
+#All Skripts in this file are for Administrator use only
+
+command /skr <text>:
+	permission: skript.admin
+	usage: /skr [script]
+	description: Short-hand version of Skript reload
+	trigger:
+		make player execute command "/skript reload %arg 1%"
+	
+		
+command /skull <offline player>:
+	permission: skript.admin
+	trigger:
+		give argument's skull to the player
+			
+				
+command /tip <text>:
+	permission: skript.admin
+	description: Broadcast a tip
+	trigger:
+		broadcast "<white>[<orange>Qrid Tip<white>] <light green>%arg-1%<reset>"
+		
+command /qrid <text>:
+	permission: skript.admin
+	description: Broadcast a tip
+	aliases: /q
+	trigger:
+		broadcast "<white>[<orange>Qrid<white>] <light green>%arg-1%<reset>"
+		
+command /qridvote <text>:
+	permission: skript.admin
+	description: Broadcast a message for Voting.
+	trigger:
+		broadcast "<white>[<orange>Qrid<white>] <light green>Thanks for voting, <green>%arg-1%<light green>!<reset>"

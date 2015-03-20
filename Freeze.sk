@@ -1,0 +1,61 @@
+command /freeze <player>:
+	permission: skript.mod
+	trigger:
+		arg-1 does not have permission "skript.admin":
+			arg-1 has permission "skript.mod":
+				player has permission "skript.admin":
+					set {Mod freeze.%arg-1%} to true
+					send "<green>%arg-1% <light green>has been <blue>frozen" to player
+					send "<green>You <light red>have been <blue>frozen" to arg-1
+				else:
+					send "<light red>You cannot <blue>freeze <light red> other <indigo>Moderators" to player
+			else:
+				set {Mod freeze.%arg-1%} to true
+				send "<green>%arg-1% <light green>has been <blue>frozen" to player
+				send "<green>You <light red>have been <blue>frozen" to arg-1
+		else:
+			send "<light red>You cannot <blue>freeze <light red>an <red>Admin" to player
+			
+command /unfreeze <player>:
+	permission: skript.mod
+	trigger:
+		{Mod freeze.%arg-1%} is set
+		delete {Mod freeze.%arg-1%}
+		send "<green>%arg 1% <light green>has been <blue>unfrozen" to player
+		send "<green>You <light green>have been <blue>unfrozen" to arg-1
+		
+on any move:
+	{Mod freeze.%player%} is set
+	{Mod freeze.%player%} is true
+	send "<light red>You have been <blue>frozen" to player
+	cancel event
+	teleport player to player's location
+	
+on command:
+	{Mod freeze.%player%} is set
+	{Mod freeze.%player%} is true
+	send "<light red>You have been <blue>frozen" to player
+	cancel event
+	
+on leftclick:
+	{Mod freeze.%player%} is set
+	{Mod freeze.%player%} is true
+	send "<light red>You have been <blue>frozen" to player
+	cancel event
+	
+on rightclick:
+	{Mod freeze.%player%} is set
+	{Mod freeze.%player%} is true
+	send "<light red>You have been <blue>frozen" to player
+	cancel event
+	
+on break:
+	{Mod freeze.%player%} is set
+	{Mod freeze.%player%} is true
+	send "<light red>You have been <blue>frozen" to player
+	cancel event
+	
+on damage of player:
+	{Mod freeze.%victim%} is set
+	{Mod freeze.%victim%} is true
+	cancel event

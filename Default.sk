@@ -1,0 +1,138 @@
+aliases:
+	wooden_tool = wood pickaxe, wood shovel, wood sword, wood axe
+	stone_tool = stone pickaxe, stone shovel, stone sword, stone axe
+	iron_tool = iron pickaxe, iron shovel, iron sword, iron axe
+	golden_tool = gold pickaxe, gold shovel, gold sword, gold axe
+	diamond_tool = diamond pickaxe, diamond shovel, diamond sword, diamond axe
+
+	
+on break of any log:
+	player's tool is an axe
+	loop blocks above event-block:
+		loop-block is any log:
+			set {_log} to type of loop-block
+			delete loop-block
+			add 1 to player's tool's durability
+			drop {_log}
+		else:
+			stop loop
+			
+on command "/list":
+	cancel event
+	
+on command "/who":
+	cancel event
+	
+on command "/msg":
+	log "%name of command sender%: %arguments%" to "Messages.log"
+	
+on sign change:
+	player does not have permission "skript.admin":
+		log "%name of event-player% changed a sign at %location of event-player%: Line 1: %line 1% ||| Line 2: %line 2% ||| Line 3: %line 3% ||| Line 4: %line 4%" to "SignChanges.log"
+		
+on first login:
+	log "%name of event-player%" to "FirstLogins.log"
+	send "<light green>Remember, buildings near spawn are more likely to get griefed. Do some exploring first!<reset>" to player
+	
+
+on login:
+	player does not have permission "skript.mod":
+		send "<light green>Remember to join us on the IRC: http://qridmc.com/pages/irc/" to player
+		send "<light green>Remember, you are responsible for knowing the rules. For a full list, go to: http://tinyurl.com/qridrules<reset>" to player
+		set login message to "[<light green>+<reset>] <yellow>%name of event-player%<reset>"
+	send "[Skript IRC] Sending message to IRC" to console
+	execute console command "/ircmsg qrid %name of event-player% has joined the server"
+	
+on logout:
+	set logout message to "[<red>-<reset>] <grey>%name of event-player%<reset>"
+	send "[Skript IRC] Sending message to IRC" to console
+	execute console command "/ircmsg qrid %name of event-player% has left the server"
+	
+	
+on rightclick on ender chest:
+	send "Not enough Ender-juice" to player
+	cancel event
+	
+on death of player:
+	attacker is a player
+	log "%name of attacker% killed %name of victim% at %location of attacker% (Victim's location: %location of victim%)" to "PvP.log"
+	
+
+#All new server recipes	
+on script load:
+	#Name Tag
+	register new shaped recipe for name tag using iron ingot, paper, iron ingot, iron ingot, paper, iron ingot, air, tripwire hook, air
+	#Leather from Rotten Flesh
+	register new shapeless recipe for leather using air, air, air, air, air, air, air, sugar, rotten flesh
+	#Diamond Horse Armor
+	register new shaped recipe for diamond horse armor using string, saddle, string, slime ball, diamond chestplate, slime ball, diamond boots, string, diamond boots
+	#Gold Horse Armor
+	register new shaped recipe for gold horse armor using string, saddle, string, slime ball, gold chestplate, slime ball, gold boots, string, gold boots
+	#Iron Horse Armor
+	register new shaped recipe for iron horse armor using string, saddle, string, slime ball, iron chestplate, slime ball, iron boots, string, iron boots
+	
+	
+command /loc:
+	description: Get your location!
+	trigger:
+		send "<green>Your coordinates: <light green>%location of player%<reset>" to player
+	
+#This may be better suited for the Mod Skript, but it technically affects only normal players.	
+on bed enter:
+	time in world is night
+	set {_skip} to true
+	loop all players:
+		loop-player does not have permission "skript.mod"
+		loop-player is not sleeping
+		set {_skip} to false
+	{_skip} is true
+	wait 1 real second
+	set time in world to 7:00
+		
+#Auto-swap tools
+on break:
+	player's tool is wooden_tool:
+		player's tool's durability >= 58
+		set {_tool} to type of player's tool
+		loop all items in player's inventory:
+			"%type of loop-item%" is "%{_tool}%"
+			loop-item's durability < 58
+			set player's tool to loop-item
+			delete loop-item
+			stop loop
+	player's tool is stone_tool:
+		player's tool's durability >= 120
+		set {_tool} to type of player's tool
+		loop all items in player's inventory:
+			"%type of loop-item%" is "%{_tool}%"
+			loop-item's durability < 120
+			set player's tool to loop-item
+			delete loop-item
+			stop loop
+	player's tool is iron_tool:
+		player's tool's durability >= 249
+		set {_tool} to type of player's tool
+		loop all items in player's inventory:
+			"%type of loop-item%" is "%{_tool}%"
+			loop-item's durability < 249
+			set player's tool to loop-item
+			delete loop-item
+			stop loop
+	player's tool is golden_tool:
+		player's tool's durability >= 31
+		set {_tool} to type of player's tool
+		loop all items in player's inventory:
+			"%type of loop-item%" is "%{_tool}%"
+			loop-item's durability < 31
+			set player's tool to loop-item
+			delete loop-item
+			stop loop
+	player's tool is diamond_tool:
+		player's tool's durability >= 1560
+		set {_tool} to type of player's tool
+		loop all items in player's inventory:
+			"%type of loop-item%" is "%{_tool}%"
+			loop-item's durability < 1560
+			set player's tool to loop-item
+			delete loop-item
+			stop loop

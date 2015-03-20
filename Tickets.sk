@@ -1,0 +1,204 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+
+command /ticket <text> <text> [<text>]:
+	usage: /ticket [List* | New | Claim | Close] [Open* | Claimed* | Resolved* | ID]
+	trigger:
+		set {_openConstant} to "Open"
+		set {_claimedConstant} to "Claimed"
+		set {_resolvedConstant} to "Resolved"
+		"%arg-1%" is "List":
+			player has permission "skript.mod":
+				arg-2 is set:
+					"%arg-2%" is "Open" or "Claimed" or "Resolved":
+						"%arg-2%" is "Open":
+							set {_type} to {_openConstant}
+						"%arg-2%" is "Claimed":
+							set {_type} to {_claimedConstant}
+						"%arg-2%" is "Resolved":
+							set {_type} to {_resolvedConstant}
+						arg-3 is set:
+							"%arg-3%" is "MyClaimedTickets":
+								set {_desc::*} to objects in column "description" from result of query "SELECT t.description FROM ticket t, players p WHERE t.uuid = p.uuid AND uuid_staff = '%UUID of player%' AND LOWER(status) = LOWER('%arg-2%')"
+								set {_name::*} to objects in column "name" from result of query "SELECT p.name FROM ticket t, players p WHERE t.uuid = p.uuid AND uuid_staff = '%UUID of player%'  AND LOWER(status) = LOWER('%arg-2%')"
+								set {_loc::*} to objects in column "location" from result of query "SELECT t.location FROM ticket t, players p WHERE t.uuid = p.uuid AND uuid_staff = '%UUID of player%'  AND LOWER(status) = LOWER('%arg-2%')"
+								set {_id::*} to objects in column "ticket_id" from result of query "SELECT t.ticket_id FROM ticket t, players p WHERE t.uuid = p.uuid AND uuid_staff = '%UUID of player%'  AND LOWER(status) = LOWER('%arg-2%')"
+							else:
+								set {_desc::*} to objects in column "description" from result of query "SELECT t.description FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(p.name) LIKE LOWER('%%%arg-3%%%')  AND LOWER(status) = LOWER('%arg-2%')"
+								set {_name::*} to objects in column "name" from result of query "SELECT p.name FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(p.name) LIKE LOWER('%%%arg-3%%%')  AND LOWER(status) = LOWER('%arg-2%')"
+								set {_loc::*} to objects in column "location" from result of query "SELECT t.location FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(p.name) LIKE LOWER('%%%arg-3%%%')  AND LOWER(status) = LOWER('%arg-2%')"
+								set {_id::*} to objects in column "ticket_id" from result of query "SELECT t.ticket_id FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(p.name) LIKE LOWER('%%%arg-3%%%')  AND LOWER(status) = LOWER('%arg-2%')"
+						else:
+							set {_desc::*} to objects in column "description" from result of query "SELECT t.description FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(status) = LOWER('%arg-2%')"
+							set {_name::*} to objects in column "name" from result of query "SELECT p.name FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(status) = LOWER('%arg-2%')"
+							set {_loc::*} to objects in column "location" from result of query "SELECT t.location FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(status) = LOWER('%arg-2%')"
+							set {_id::*} to objects in column "ticket_id" from result of query "SELECT t.ticket_id FROM ticket t, players p WHERE t.uuid = p.uuid AND LOWER(status) = LOWER('%arg-2%')"
+						size of {_desc::*} is greater than 0:
+							send "<indigo>~~~ %{_type}% <indigo>Tickets ~~~<reset>" to player
+							loop {_desc::*}:
+								set {_num} to loop-index
+								add 1 to {_num}
+								send "<indigo>%{_num}%. <light green>%loop-value%<reset>" to player
+								send "<indigo>--Reported by: <light green>%{_name::%loop-index%}%<reset>" to player
+								send "<indigo>--Location: <light green>%{_loc::%loop-index%}%<reset>" to player
+								send "<indigo>--Ticket ID: <light green>%{_id::%loop-index%}%<reset>" to player
+								"%{_type}%" is "Open"
+							"%{_type}%" is "Open"
+							send "<light green>Use ""/ticket claim [Ticket ID]"" to claim an unclaimed <indigo>Ticket<light green>.<reset>" to player
+						else:
+							send "<light red>There are no <indigo>%{_type}% <indigo>Tickets <light red>right now." to player
+					else:
+						send "<light red>Choose ""Open"", ""Claimed"", or ""Resolved""<reset>" to player
+				else:
+					send "<light red>Which Tickets do you wish to view? Choose ""Open"", ""Claimed"", or ""Resolved""<reset>" to player
+			else:
+				arg-2 is set:
+					"%arg-2%" is "Open" or "Claimed" or "Resolved":
+						"%arg-2%" is "Open":
+							set {_type} to {_openConstant}
+						"%arg-2%" is "Claimed":
+							set {_type} to {_claimedConstant}
+						"%arg-2%" is "Resolved":
+							set {_type} to {_resolvedConstant}
+						set {_tickets::*} to objects in column "description" from result of query "SELECT description FROM ticket WHERE uuid = '%UUID of player%' AND LOWER(status) = LOWER('%arg-2%')"
+						size of {_tickets::*} is greater than 0:
+							send "<indigo>~~~ %{_type}% <indigo>Tickets ~~~<reset>" to player
+							loop {_tickets::*}:	
+								set {_num} to loop-index
+								add 1 to {_num}
+								send "<indigo>%{_num}%. <light green>%loop-value%<reset>" to player
+						else:
+							send "<light red>There are no <indigo>%{_type}% <indigo>Tickets <light red>right now." to player
+					else:
+						send "<light red>Choose ""Open"", ""Claimed"", or ""Resolved""<reset>" to player
+				else:
+					send "<light red>Which Tickets do you wish to view? Choose ""Open"", ""Claimed"", or ""Resolved""<reset>" to player
+		"%arg-1%" is "New":
+			arg-2 is set:
+				update "INSERT INTO ticket (uuid, description, location, status) VALUES ('%UUID of player%', '%arg-2% %arg-3%', '%location of player%', 'Open')"
+				send "<indigo>Ticket <light green>sent successfully.<reset>" to player
+				loop all players:
+					loop-player has permission "skript.mod"
+					send "<green>%name of player% <light green>has sent in a new <indigo>Ticket<light green>.<reset>" to loop-player
+					send "<light green>You can view this specific <indigo>Ticket<light green> using ""/ticket list Open %name of player%""<reset>" to loop-player
+				execute console command "/ircmsg qridstaff %name of player% sent in a new Ticket."
+			else:
+				send "<light red>You must give a description of the bug/error/problem/etc.<reset>" to player
+		"%arg-1%" is "Claim":
+			player has permission "skript.mod":
+				arg-2 is set:
+					set {_claim::*} to objects in column "ticket_id" from result of query "SELECT ticket_id FROM ticket WHERE ticket_id = '%arg-2%' AND status = 'Open'"
+					size of {_claim::*} is 1:
+						update "UPDATE ticket SET status = 'Claimed', uuid_staff = '%UUID of player%' WHERE ticket_id = '%{_claim::*}%'"
+						loop all players:
+							loop-player has permission "skript.mod"
+							send "<green>%name of player% <light green>has claimed <indigo>Ticket ID %{_claim::*}%<light green>.<reset>" to loop-player
+					else:
+						send "<light red>Sorry, either that <indigo>Ticket <light red>is already Claimed, or it is Resolved.<reset>" to player
+				else:
+					send "<light red>Choose a Ticket ID to claim.<reset>" to player
+			else:
+				send "<light red>Only a <indigo>Moderator<light red> or above can claim <indigo>Tickets<light red>.<reset>" to player
+		"%arg-1%" is "Resolve":
+			player has permission "skript.mod":
+				arg-2 is set:
+					set {_claim::*} to objects in column "ticket_id" from result of query "SELECT ticket_id FROM ticket WHERE ticket_id = '%arg-2%' AND status IN ('Open', 'Claimed')"
+					size of {_claim::*} is 1:
+						arg-3 is set:
+							update "UPDATE ticket SET status = 'Resolved', uuid_staff = '%UUID of player%', extra_info = '%arg-3%' WHERE ticket_id = '%{_claim::*}%'"
+						else:
+							update "UPDATE ticket SET status = 'Resolved', uuid_staff = '%UUID of player%' WHERE ticket_id = '%{_claim::*}%'"
+						loop all players:
+							loop-player has permission "skript.mod"
+							send "<green>%name of player% <light green>has resolved <indigo>Ticket ID %{_claim::*}%<light green>.<reset>" to loop-player
+							send json of "<light green>Curious about the <indigo>Ticket<light green>? Click this message for details.<reset>" run "/ticket info %{_claim::*}%" to loop-player
+					else:
+						send "<light red>Sorry, either that <indigo>Ticket <light red>is already Resolved, or it does not exist.<reset>" to player
+				else:
+					send "<light red>Choose a Ticket ID to resolve.<reset>" to player
+			else:
+				send "<light red>Only a <indigo>Moderator<light red> or above can resolve <indigo>Tickets<light red>.<reset>" to player
+		"%arg-1%" is "Transfer":
+			player has permission "skript.mod":
+				arg-2 is set:
+					set {_claim::*} to objects in column "ticket_id" from result of query "SELECT ticket_id FROM ticket WHERE ticket_id = '%arg-2%' AND status = 'Claimed' AND uuid_staff = '%UUID of player%'"
+					size of {_claim::*} is 1:
+						arg-3 is set:
+							set {_transferUUID::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-3%%%') AND rank IN('Admin', 'Mod') AND uuid <> '%UUID of player%'"
+							size of {_transferUUID::*} is 1:
+								update "UPDATE ticket SET uuid_staff = '%{_transferUUID::*}%' WHERE ticket_id = '%{_claim::*}%'"
+								send "<light green>You have successfully transferred <indigo>Ticket ID %{_claim::*}%<light green>.<reset>" to player
+							else:
+								send "<light red>Either that player is not a Staff member, or you are trying to transfer a <indigo>Ticket<light red> to yourself.<reset>" to player
+						else:
+							send "<light red>Choose a Staff member to transfer this <indigo>Ticket <light red>to.<reset>" to player
+						loop all players:
+							"%UUID of loop-player%" is "%{_transferUUID::*}%"
+							send "<green>%name of player% <light green>has transferred <indigo>Ticket ID %{_claim::*}%<light green> to you.<reset>" to loop-player
+							send json of "<light green>Click this message for details.<reset>" run "/ticket info %{_claim::*}%" to loop-player
+					else:
+						send "<light red>Sorry, either that <indigo>Ticket <light red>is not Claimed by you, or it does not exist.<reset>" to player
+				else:
+					send "<light red>Choose a Ticket ID to transfer.<reset>" to player
+			else:
+				send "<light red>Only a <indigo>Moderator<light red> or above can resolve <indigo>Tickets<light red>.<reset>" to player
+		"%arg-1%" is "Info":
+			player has permission "skript.mod":
+				arg-2 is set:
+					set {_claim::*} to objects in column "ticket_id" from result of query "SELECT ticket_id FROM ticket WHERE ticket_id = '%arg-2%'"
+					size of {_claim::*} is 1:
+						set {_reporter} to index 0 of objects in column "name" from result of query "SELECT p.name FROM players p, ticket t WHERE p.uuid = t.uuid AND t.ticket_id = '%{_claim::*}%'"
+						set {_desc} to index 0 of objects in column "description" from result of query "SELECT description FROM ticket WHERE ticket_id = '%{_claim::*}%'"
+						set {_loc} to index 0 of objects in column "location" from result of query "SELECT location FROM ticket WHERE ticket_id = '%{_claim::*}%'"
+						set {_status} to index 0 of objects in column "status" from result of query "SELECT status FROM ticket WHERE ticket_id = '%{_claim::*}%'"
+						set {_claimed::*} to objects in column "name" from result of query "SELECT p.name FROM players p, ticket t WHERE p.uuid = t.uuid_staff AND t.ticket_id = '%{_claim::*}%'"
+						set {_info::*} to objects in column "extra_info" from result of query "SELECT extra_info FROM ticket WHERE ticket_id = '%{_claim::*}%'"
+						send "<indigo>~~~ Ticket Information ~~~<reset>" to player
+						send "<indigo>Ticket ID: <light green>%{_claim::*}%<reset>" to player
+						send "<indigo>Reported By: <light green>%{_reporter}%<reset>" to player
+						send "<indigo>Description: <light green>%{_desc}%<reset>" to player
+						send "<indigo>Location: <light green>%{_loc}%<reset>" to player
+						send "<indigo>Status: <light green>%{_status}%<reset>" to player
+						size of {_claimed::*} is 1:
+							send "<indigo>Claimed by: <light green>%{_claimed::*}%<reset>" to player
+						size of {_info::*} is 1:
+							send "<indigo>Extra Info: <light green>%{_info::*}%<reset>" to player
+					else:
+						send "<light red>Sorry, that <indigo>Ticket <light red>doesn't exist.<reset>" to player
+				else:
+					send "<light red>Choose a Ticket ID to look at.<reset>" to player
+			else:
+				send "<light red>Only a <indigo>Moderator<light red> or above can view information for <indigo>Tickets<light red>.<reset>" to player
+				
+command /myclaimedtickets:
+	permission: skript.mod
+	aliases: /mct
+	trigger:
+		make player execute command "/ticket List Claimed MyClaimedTickets"
+		
+on login:
+	player has permission "skript.mod"
+	make player execute command "/ticket List Open"
+				
+command /purge <text> <text>:
+	permission: skript.admin
+	trigger:
+		arg-1 is set:
+			arg-2 is set:
+				"%arg-1%" is "Status":
+					update "DELETE FROM ticket WHERE status = '%arg-2%'"
+					send "<light green>You have successfully purged all <indigo>%arg-2% <indigo>Tickets <light green>from the system.<reset>" to player
+				"%arg-1%" is "Player":
+					set {_uuid::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-2%%%')"
+					size of {_uuid::*} is 1:
+						update "DELETE FROM ticket WHERE uuid = '%{_uuid::*}%'"
+						send "<light green>You have successfully purged all of <green>%arg-2%<light green>'s <indigo>Tickets <light green>from the system.<reset>" to player
+					else:
+						send "<light red>More than one player matched criteria. Please be more specific.<reset>" to player
+			else:
+				send "<light red>Choose a Status or Player to purge all matching <indigo>Tickets<light red>.<reset>" to player
+		else:
+			send "<light red>Choose ""Status"" or ""Player""<reset>" to player

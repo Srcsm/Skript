@@ -1,0 +1,79 @@
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+
+	#set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE uuid = '%UUID of player%'"
+	
+command /warnings <text="New">:
+	trigger:
+		"%arg-1%" is "New":
+			set {_warnings::*} to objects in column "description" from result of query "SELECT description FROM warning WHERE uuid = '%UUID of player%' AND active = 'Yes' AND seen = 'No'"
+			set {_ids::*} to objects in column "warning_id" from result of query "SELECT warning_id FROM warning WHERE uuid = '%UUID of player%' AND active = 'Yes' AND seen = 'No'"
+		"%arg-1%" is "Old":
+			set {_warnings::*} to objects in column "description" from result of query "SELECT description FROM warning WHERE uuid = '%UUID of player%' AND active = 'Yes' AND seen = 'Yes'"
+			set {_ids::*} to objects in column "warning_id" from result of query "SELECT warning_id FROM warning WHERE uuid = '%UUID of player%' AND active = 'Yes' AND seen = 'Yes'"
+		size of {_warnings::*} is more than 1
+		size of {_warnings::*} is 3:
+			update "UPDATE warning SET active = 'No' WHERE uuid = '%UUID of player%'"
+			execute console command "/ban %name of player% Exceeded Warning Limit: Appeal @ www.qridmc.com"
+		send "<light red>Your Warnings" to player
+		loop {_warnings::*}:
+			send "<red>Warning %loop-index%: <light red>%loop-value%" to player
+		loop {_ids::*}:
+			update "UPDATE warning SET seen = 'Yes' WHERE warning_id = '%loop-value%'"
+			
+on login:
+	make player execute command "/warnings New"
+	
+command /warn <text> <text> <text>:
+	permission: skript.mod
+	usage: /warn [Player] [Type of Warning] [Description]
+	trigger:
+		set {_date} to "%now%"
+		set {_date::*} to {_date} split at " "
+		set {_date} to {_date::1}
+		set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%') AND rank NOT IN('Admin', 'Mod')"
+		size of {_exists::*} is 1:
+			"%arg-2%" is "Theft" or "Griefing" or "Chat" or "Client" or "Other":
+				set {_desc} to arg-3
+				replace all "'" with "''" in {_desc}
+				replace all """" with """""" in {_desc}
+				update "INSERT INTO warning (uuid, active, seen, type, description, date) VALUES('%{_exists::*}%', 'Yes', 'No', UPPER('%arg-2%'), '%{_desc}%', '%{_date}%')"
+				send "<light green>Warning sent successfully." to player
+				loop all players:
+					"%UUID of loop-player%" is "%{_exists::*}%"
+					make player execute command "/warnings New"
+			else:
+				send "<light red>Choose a Type from: Theft, Griefing, Chat, Client, or Other" to player
+		else:
+			send "<light red>Player name was ambiguous. Please use full name." to player
+			
+command /check <text>:
+	permission: skript.mod
+	usage: /check [Name of Player]
+	trigger:
+		set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%') AND rank NOT IN('Admin', 'Mod')"
+		set {_name::*} to objects in column "name" from result of query "SELECT name FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%') AND rank NOT IN('Admin', 'Mod')"
+		size of {_exists::*} is 1:
+			set {_warnings::*} to objects in column "description" from result of query "SELECT description FROM warning WHERE uuid = '%{_exists::*}%'"
+			set {_active::*} to objects in column "active" from result of query "SELECT active FROM warning WHERE uuid = '%{_exists::*}%'"
+			set {_types::*} to objects in column "type" from result of query "SELECT type FROM warning WHERE uuid = '%{_exists::*}%'"
+			set {_dates::*} to objects in column "date" from result of query "SELECT date FROM warning WHERE uuid = '%{_exists::*}%'"
+			size of {_warnings::*} > 0:
+				send "<light green>--- All Warnings for <green>%{_name::*}%<light green> ---" to player
+				loop {_warnings::*}:
+					send "<green>%loop-index%. <light green>%{_warnings::%loop-index%}%" to player
+					send "<green>- Type: <light green>%{_types::%loop-index%}%" to player
+					send "<green>- Active: <light green>%{_active::%loop-index%}%" to player
+					send "<green>- Date: <light green>%{_dates::%loop-index%}%" to player
+			else:
+				send "<light red>There are no Warnings for <green>%{_name::*}%<light red>." to player
+		else:
+			send "<light red>Player name was ambiguous. Please use full name." to player
+			send "<light red>Also, this command will not work for <indigo>Mods <light red>or <red>Admins<light red>." to player
+		
+on command "/ban":
+	set {_exists::*} to objects in column "uuid" from result of query "SELECT uuid FROM players WHERE LOWER(name) LIKE LOWER('%%%arg-1%%%') AND rank NOT IN('Admin', 'Mod')"
+	update "UPDATE warning SET active = 'No' WHERE uuid = '%{_exists::*}%'"

@@ -1,0 +1,139 @@
+# All Skripts in this file are for the Qrid banking system
+script options:
+    $ init com.mysql.jdbc.Driver
+    $ db url jdbc:mysql://104.243.39.17:3306/skript
+    $ db username root
+    $ db password 6ojvT4O27s
+	
+command /bank <text> [<offline player>]:
+	permission: skript.mod
+	trigger:
+		"%arg 1%" is "set":
+			player has permission "skript.admin"
+			set {Bank location} to location of player
+			set {Bank chunk} to the chunk at the player
+			send "<light green>The Bank location has been set.<reset>" to player
+		"%arg 1%" is "tp":
+			{Bank location} is set:
+				teleport player to {Bank location}
+			else:
+				send "<light red>The location of the bank is not set.<reset>" to player
+		"%arg 1%" is "open":
+			player has permission "skript.admin":
+				{Bank %arg 2%.chest} is set:
+					open the inventory of {Bank %arg 2%.chest} to the player
+				else:
+					send "<light red>This player does not have a Bank Chest.<reset>" to player
+			else:
+				loop all items in the inventory of {Bank %arg 2%.chest}:
+					add "%loop-item%" to {_Bank inv::*}
+				send "<green>%arg 2%<light green>'s Bank Chest contains: <yellow>%{_Bank inv::*}%<reset>" to command sender
+				
+	
+command /banktest1:
+	permission: skript.admin
+	trigger:
+		loop all items in the player's inventory:
+			add loop-item to {_inv::*}
+		update "INSERT INTO bank (uuid, bank_number, contents) VALUES('%UUID of player%', '1', '%{_inv::*}%')"
+	
+command /banktest2:
+	permission: skript.admin
+	trigger:
+		set {_inv::*} to index 0 of objects in column "contents" from result of query "SELECT contents FROM bank WHERE uuid = '%UUID of player%'"
+		open chest with 6 rows named "%name of player%'s Bank" to player
+		loop {_inv::*}:
+			add loop-value to player's current inventory
+		while inventory name of current inventory of player is "%name of player%'s Bank":
+			set {Bank.%player%} to true
+			wait 1 tick
+			
+on inventory close:
+	{Bank.%player%} is true
+	loop 36 times:
+		set {_inv::%loop-number - 1%} to slot "%loop-number - 1%" parsed as an integer of current inventory of player
+	update "UPDATE bank SET contents = '%{_inv::*}%' WHERE uuid = '%UUID of player%'"
+				
+command /bankinfo <number=1>:
+	usage: /bankinfo [Page]
+	trigger:
+		send "<light green>----------Qrid Banking Info----------<reset>" to player
+		arg-1 is 1:
+			send "<light yellow>~PRICE~<reset>" to player
+			send "<light yellow>Buying a single chest: <yellow>20 Gold Blocks<reset>" to player
+			send "<light yellow>Upgrading from single to double chest: <yellow>20 Gold Blocks<reset>" to player
+			send "<light yellow>Buying a double chest: <yellow>35 Gold Blocks<reset>" to player
+			send "<light yellow>To buy a Bank Chest, talk to a <indigo>Mod <light yellow>or <light red>Admin<reset>" to player
+			stop trigger
+		arg-1 is 2:
+			send "<light yellow>~INFO~<reset>" to player
+			send "<light yellow>Qrid Banks are quite expensive<reset>" to player
+			send "<light yellow>However, they are a lifetime purchase as well<reset>" to player
+			send "<light yellow>And no one has access to your chest but you<reset>" to player
+			stop trigger
+		arg-1 is 3:
+			send "<light yellow>~WARNING~<reset>" to player
+			send "<light yellow><indigo>Mods <light yellow>and <light red>Admins <light yellow> can still look at your Qrid Bank Chest<reset>" to player
+			send "<light yellow>So please do not assume illegitimate items can be hidden in the Qrid Bank<reset>" to player
+			stop trigger
+		arg-1 is 4:
+			send "<light yellow>~PUTTING A BANK IN YOUR TOWN~<reset>" to player
+			send "<light yellow>To have access to your Bank Chest, you need a Bank<reset>" to player
+			send "<light yellow>There will always be a Bank in spawn for your convenience<reset>" to player
+			send "<light yellow>To put a bank in your town, apply on the forums<reset>" to player
+			stop trigger
+		send "<light red>There are only 4 pages of Bank Info<reset>" to player
+				
+command /open <offline player>:
+	executable by: console
+	trigger:
+		loop all items in the inventory of {Bank %arg 1%.chest}:
+			add "%loop-item%" to {_Bank inv::*}
+		send "<green>%arg 1%<light green>'s Bank Chest contains: <yellow>%{_Bank inv::*}%<reset>" to console
+				
+on sign change:
+	line 1 is "[Bank]":
+		player has permission "skript.mod":
+			if line 2 is not empty:
+				set {Bank %line 2%.chest} to block below event-block
+				send "<light green>A Bank Chest has been successfully made for <green>%line 2%<light green>.<reset>" to player
+			else if line 3 is not empty:
+				send "<light green>You have created a Bank command sign.<reset>" to player
+			else:
+				send "<light red>Remember to set a player for this Bank Chest.<reset>" to player
+		else:
+			send "<light>Sorry, this type of sign is set by a Mod or Admin.<reset>" to player
+			cancel event
+			
+on rightclick on sign:
+	line 1 is "[Bank]"
+	line 3 is "[Access]":
+		{Bank %player%.chest} is set:
+			{Bank %player%.chest} is a chest
+			set {Bank %player%.chest}'s inventory name to "%player%'s Bank Chest"
+			open the inventory of {Bank %player%.chest} to the player
+		else:
+			send "<light red>You do not have a bank chest yet. Contact an Admin for one.<reset>" to player
+		stop trigger
+	line 3 is "[Info]":
+		make player execute command "/bankinfo"
+		stop trigger
+		
+on break of sign:
+	line 1 is "[Bank]"
+	if player has permission "skript.admin":
+		if line 2 is not empty:
+			{Bank %line 2%.chest} is set
+			delete {Bank %line 2%.chest}
+			send "<light red>You have deleted the Bank for <green>%line 2%<light green>.<reset>" to player
+	else:
+		cancel event
+		
+on chunk unload:
+	chunk is {Bank chunk}
+	cancel event
+	
+on script load:
+	{Bank chunk} is set
+	spawn zombie at {Bank location}
+	delete spawned zombie
