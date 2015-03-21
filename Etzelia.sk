@@ -36,11 +36,6 @@ command /test:
 		"Test".Recipe.registerResult{diamond sword named "Firebrand"};
 		"Test".Recipe.register{};
 			
-command /show:
-	trigger:
-		player's name is "Etzelia"
-		reveal all players to player
-		send "<light green>All hidden players have been revealed.<reset>" to player
 		
 command /clr:
 	trigger:
@@ -51,12 +46,6 @@ command /damage <number>:
 	trigger:
 		player's name is "Etzelia"
 		set player's tool's data value to arg-1
-		
-command /id:
-	trigger:
-		player's name is "Etzelia"
-		send "<green>ID for %targeted block%: <light green>%id of targeted block%" to player
-	
 	
 command /shikai:
 	trigger:
