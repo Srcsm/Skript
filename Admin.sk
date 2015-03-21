@@ -32,3 +32,20 @@ command /qridvote <text>:
 	description: Broadcast a message for Voting.
 	trigger:
 		broadcast "<white>[<orange>Qrid<white>] <light green>Thanks for voting, <green>%arg-1%<light green>!<reset>"
+		
+command /show:
+	permission: skript.admin
+	description: Reveal all hidden players.
+	trigger:
+		reveal all players to player
+		send "<light green>All hidden players have been revealed.<reset>" to player
+		
+command /id:
+	permission: skript.admin
+	description Shows the ID of the targetted block.
+	trigger:
+		send "<green>ID for %targeted block%: <light green>%id of targeted block%" to player
+		
+########################################################
+##As well, the 'make me' command would be of good use to more than just you. :P Otherwise, these commands can be utilized by all Admins. The ID one by mods alike, even.
+########################################################
